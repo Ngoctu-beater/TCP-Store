@@ -1,0 +1,535 @@
+<!doctype html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Quản lý đơn hàng</title>
+    <script>
+      const userRole =
+        localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+      if (userRole !== "ADMIN" && userRole !== "ROLE_ADMIN") {
+        window.location.replace("home.html");
+      }
+    </script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1d7fe2",
+              "background-light": "#f6f7f8",
+              "background-dark": "#111921",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1a242f",
+            },
+            fontFamily: {
+              display: ["Manrope", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .filled {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-[#111417] overflow-hidden"
+  >
+    <div class="flex h-screen w-full">
+      <div id="admin-sidebar-placeholder" class="contents"></div>
+      <main
+        class="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light"
+      >
+        <div id="admin-header-placeholder" class="contents"></div>
+        <div class="flex-1 overflow-y-auto p-6">
+          <div class="max-w-[1400px] mx-auto flex flex-col gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div
+                class="bg-surface-light p-5 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col gap-4"
+              >
+                <div class="flex justify-between items-start">
+                  <div class="p-2 bg-blue-50 rounded-lg text-primary">
+                    <span class="material-symbols-outlined filled"
+                      >receipt_long</span
+                    >
+                  </div>
+                </div>
+                <div>
+                  <p class="text-[#637588] text-sm font-medium">
+                    Tổng đơn hàng
+                  </p>
+                  <h3
+                    id="stat-total-orders"
+                    class="text-[#111417] text-2xl font-bold mt-1"
+                  >
+                    ...
+                  </h3>
+                </div>
+              </div>
+              <div
+                class="bg-surface-light p-5 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col gap-4"
+              >
+                <div class="flex justify-between items-start">
+                  <div class="p-2 bg-orange-50 rounded-lg text-orange-600">
+                    <span class="material-symbols-outlined filled"
+                      >pending_actions</span
+                    >
+                  </div>
+                </div>
+                <div>
+                  <p class="text-[#637588] text-sm font-medium">
+                    Đơn chờ xử lý
+                  </p>
+                  <h3
+                    id="stat-pending-orders"
+                    class="text-[#111417] text-2xl font-bold mt-1"
+                  >
+                    ...
+                  </h3>
+                </div>
+              </div>
+              <div
+                class="bg-surface-light p-5 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col gap-4"
+              >
+                <div class="flex justify-between items-start">
+                  <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
+                    <span class="material-symbols-outlined filled"
+                      >local_shipping</span
+                    >
+                  </div>
+                </div>
+                <div>
+                  <p class="text-[#637588] text-sm font-medium">
+                    Đơn đang giao
+                  </p>
+                  <h3
+                    id="stat-shipping-orders"
+                    class="text-[#111417] text-2xl font-bold mt-1"
+                  >
+                    ...
+                  </h3>
+                </div>
+              </div>
+              <div
+                class="bg-surface-light p-5 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col gap-4"
+              >
+                <div class="flex justify-between items-start">
+                  <div class="p-2 bg-green-50 rounded-lg text-green-600">
+                    <span class="material-symbols-outlined filled"
+                      >check_circle</span
+                    >
+                  </div>
+                </div>
+                <div>
+                  <p class="text-[#637588] text-sm font-medium">
+                    Đơn đã hoàn thành
+                  </p>
+                  <h3
+                    id="stat-completed-orders"
+                    class="text-[#111417] text-2xl font-bold mt-1"
+                  >
+                    ...
+                  </h3>
+                </div>
+              </div>
+            </div>
+            <div
+              class="bg-surface-light rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col overflow-hidden"
+            >
+              <div class="p-6 border-b border-[#e5e7eb] flex flex-col gap-4">
+                <div
+                  class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+                >
+                  <h3 class="text-[#111417] text-lg font-bold">
+                    Tất cả đơn hàng
+                  </h3>
+                  <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                    <div class="relative w-full sm:w-64">
+                      <span
+                        class="material-symbols-outlined absolute left-2.5 top-2 text-[#637588] text-[20px]"
+                        >search</span
+                      >
+                      <input
+                        id="search-order"
+                        class="h-9 pl-9 pr-4 rounded-lg border border-[#e5e7eb] bg-[#f9fafb] text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-full"
+                        placeholder="Tìm theo mã đơn hoặc tên KH..."
+                        type="text"
+                      />
+                    </div>
+                    <button
+                      class="h-9 px-3 rounded-lg border border-[#e5e7eb] bg-white text-[#111417] text-sm font-bold hover:bg-[#f9fafb] flex items-center gap-2"
+                    >
+                      <span class="material-symbols-outlined text-[18px]"
+                        >file_download</span
+                      >
+                      Xuất Excel
+                    </button>
+                  </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-[#637588]"
+                      >Lọc theo:</span
+                    >
+                    <select
+                      id="filter-status"
+                      class="h-9 pl-3 pr-8 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-[#111417]"
+                    >
+                      <option value="">Tất cả trạng thái</option>
+                      <option value="PENDING">Chờ xác nhận</option>
+                      <option value="CONFIRMED">Đang xử lý</option>
+                      <option value="SHIPPING">Đang giao hàng</option>
+                      <option value="DELIVERED">Hoàn thành</option>
+                      <option value="CANCELLED">Đã hủy</option>
+                    </select>
+                  </div>
+                  <div class="h-9 w-px bg-[#e5e7eb] hidden sm:block"></div>
+                  <div class="flex items-center gap-2">
+                    <span class="text-sm font-medium text-[#637588]"
+                      >Ngày đặt:</span
+                    >
+                    <input
+                      class="h-9 px-3 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-[#111417]"
+                      type="date"
+                    />
+                    <span class="text-[#637588]">-</span>
+                    <input
+                      class="h-9 px-3 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-[#111417]"
+                      type="date"
+                    />
+                  </div>
+                  <button
+                    class="ml-auto text-sm text-primary font-bold hover:underline"
+                  >
+                    Xóa bộ lọc
+                  </button>
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead class="bg-[#f9fafb]">
+                    <tr>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Mã đơn
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Ngày đặt
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Tên khách hàng
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Tổng tiền (VND)
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Thanh toán
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Trạng thái
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Hành động
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="order-table-body"
+                    class="divide-y divide-[#e5e7eb]"
+                  ></tbody>
+                </table>
+              </div>
+              <div
+                class="p-4 border-t border-[#e5e7eb] flex items-center justify-between"
+              >
+                <p id="pagination-info" class="text-sm text-[#637588]">
+                  Đang tải dữ liệu...
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    id="btn-prev-page"
+                    onclick="changePage(-1)"
+                    class="h-8 px-3 rounded border border-[#e5e7eb] bg-white text-[#637588] hover:bg-[#f9fafb] disabled:opacity-50"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >chevron_left</span
+                    >
+                  </button>
+                  <button
+                    id="btn-next-page"
+                    onclick="changePage(1)"
+                    class="h-8 px-3 rounded border border-[#e5e7eb] bg-white text-[#637588] hover:bg-[#f9fafb] disabled:opacity-50"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >chevron_right</span
+                    >
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <div
+      id="order-modal"
+      class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center backdrop-blur-sm transition-opacity"
+    >
+      <div
+        class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh]"
+      >
+        <div
+          class="px-6 py-4 border-b border-[#e5e7eb] flex justify-between items-center bg-gray-50"
+        >
+          <h3 id="modal-order-title" class="text-xl font-bold text-[#111417]">
+            Chi tiết đơn hàng
+          </h3>
+          <button
+            onclick="closeOrderModal()"
+            class="text-gray-400 hover:text-red-500 transition-colors"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1 flex flex-col gap-6">
+          <input type="hidden" id="modal-order-code" />
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+              <h4
+                class="font-bold text-sm mb-3 text-primary flex items-center gap-2"
+              >
+                <span class="material-symbols-outlined text-[18px]"
+                  >local_shipping</span
+                >Thông tin nhận hàng
+              </h4>
+              <p class="text-sm mb-1.5">
+                <span class="text-[#637588] inline-block w-24"
+                  >Người nhận:</span
+                >
+                <span
+                  id="modal-customer-name"
+                  class="font-bold text-[#111417]"
+                ></span>
+              </p>
+              <p class="text-sm mb-1.5">
+                <span class="text-[#637588] inline-block w-24"
+                  >Điện thoại:</span
+                >
+                <span
+                  id="modal-customer-phone"
+                  class="font-bold text-[#111417]"
+                ></span>
+              </p>
+              <p class="text-sm">
+                <span class="text-[#637588] inline-block w-24">Địa chỉ:</span>
+                <span
+                  id="modal-customer-address"
+                  class="font-bold text-[#111417]"
+                ></span>
+              </p>
+            </div>
+            <div
+              class="bg-orange-50/50 p-4 rounded-xl border border-orange-100"
+            >
+              <h4
+                class="font-bold text-sm mb-3 text-orange-600 flex items-center gap-2"
+              >
+                <span class="material-symbols-outlined text-[18px]"
+                  >payments</span
+                >
+                Thanh toán & Trạng thái
+              </h4>
+
+              <p class="text-sm mb-3 flex items-center gap-2">
+                <span
+                  class="text-[#637588] inline-block w-[110px] flex-shrink-0 whitespace-nowrap"
+                  >Phương thức:</span
+                >
+                <span
+                  id="modal-payment-method"
+                  class="font-bold text-[#111417]"
+                ></span>
+              </p>
+
+              <div class="text-sm flex items-center gap-2 mb-3">
+                <span
+                  class="text-[#637588] font-bold w-[110px] flex-shrink-0 whitespace-nowrap"
+                  >Trạng thái TT:</span
+                >
+                <select
+                  id="modal-payment-status"
+                  class="h-9 px-3 text-sm rounded-lg border border-[#e5e7eb] font-bold text-orange-600 focus:ring-orange-500 focus:border-orange-500 w-full"
+                >
+                  <option value="PENDING">Chờ thanh toán</option>
+                  <option value="PAID">Đã thanh toán</option>
+                  <option value="FAILED">Thất bại</option>
+                </select>
+              </div>
+
+              <div class="text-sm flex items-center gap-2">
+                <span
+                  class="text-[#637588] font-bold w-[110px] flex-shrink-0 whitespace-nowrap"
+                  >Trạng thái đơn:</span
+                >
+                <select
+                  id="modal-order-status"
+                  class="h-9 px-3 text-sm rounded-lg border border-[#e5e7eb] font-bold text-primary focus:ring-primary focus:border-primary w-full"
+                >
+                  <option value="PENDING">Chờ xác nhận</option>
+                  <option value="CONFIRMED">Đang xử lý</option>
+                  <option value="SHIPPING">Đang giao hàng</option>
+                  <option value="DELIVERED">Hoàn thành</option>
+                  <option value="CANCELLED">Đã hủy</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-sm mb-3 text-[#111417]">
+              Sản phẩm đã đặt
+            </h4>
+            <div class="border border-[#e5e7eb] rounded-xl overflow-hidden">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-[#f9fafb] border-b border-[#e5e7eb]">
+                  <tr>
+                    <th class="py-3 px-4 font-bold text-[#637588]">Sản phẩm</th>
+                    <th class="py-3 px-4 font-bold text-[#637588] text-center">
+                      SL
+                    </th>
+                    <th class="py-3 px-4 font-bold text-[#637588] text-right">
+                      Đơn giá
+                    </th>
+                    <th class="py-3 px-4 font-bold text-[#637588] text-right">
+                      Thành tiền
+                    </th>
+                  </tr>
+                </thead>
+                <tbody
+                  id="modal-order-items"
+                  class="divide-y divide-[#e5e7eb]"
+                ></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <div
+              class="w-72 space-y-2.5 text-sm bg-[#f9fafb] p-4 rounded-xl border border-[#e5e7eb]"
+            >
+              <div class="flex justify-between">
+                <span class="text-[#637588]">Tạm tính:</span>
+                <span
+                  id="modal-subtotal"
+                  class="font-bold text-[#111417]"
+                ></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-[#637588]">Phí vận chuyển:</span>
+                <span
+                  id="modal-shipping-fee"
+                  class="font-bold text-[#111417]"
+                ></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-[#637588]">Giảm giá:</span>
+                <span
+                  id="modal-discount"
+                  class="font-bold text-green-600"
+                ></span>
+              </div>
+              <div
+                class="flex justify-between pt-3 border-t border-[#e5e7eb] font-bold text-lg"
+              >
+                <span class="text-[#111417]">Tổng cộng:</span>
+                <span id="modal-total" class="text-primary"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="px-6 py-4 border-t border-[#e5e7eb] flex justify-end gap-3 bg-gray-50"
+        >
+          <button
+            onclick="closeOrderModal()"
+            class="px-5 py-2.5 rounded-lg border border-[#e5e7eb] text-[#637588] hover:bg-white font-bold text-sm transition-colors"
+          >
+            Đóng
+          </button>
+          <button
+            id="btn-save-status"
+            onclick="saveOrderStatus()"
+            class="px-5 py-2.5 rounded-lg bg-primary text-white font-bold text-sm hover:bg-blue-600 shadow-sm transition-colors flex items-center gap-2"
+          >
+            Lưu cập nhật
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="js/common.js"></script>
+  <script src="js/order_management.js"></script>
+</html>

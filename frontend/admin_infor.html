@@ -1,0 +1,263 @@
+<!doctype html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Hồ sơ Admin</title>
+    <script>
+      const userRole =
+        localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+      if (userRole !== "ADMIN" && userRole !== "ROLE_ADMIN") {
+        window.location.replace("home.html");
+      }
+    </script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1d7fe2",
+              "background-light": "#f6f7f8",
+              "background-dark": "#111921",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1a242f",
+            },
+            fontFamily: {
+              display: ["Manrope", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .filled {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-[#111417] overflow-hidden"
+  >
+    <div class="flex h-screen w-full">
+      <div id="admin-sidebar-placeholder" class="contents"></div>
+      <main
+        class="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light"
+      >
+        <div id="admin-header-placeholder" class="contents"></div>
+        <div class="flex-1 overflow-y-auto p-6">
+          <div class="max-w-[1000px] mx-auto flex flex-col gap-6">
+            <div
+              class="bg-surface-light rounded-xl border border-[#e5e7eb] shadow-sm p-6 sm:p-8"
+            >
+              <div
+                class="flex items-center justify-between mb-8 border-b border-[#f0f2f4] pb-4"
+              >
+                <div>
+                  <h3 class="text-xl font-bold text-[#111417]">
+                    Thông tin cá nhân
+                  </h3>
+                  <p class="text-sm text-[#637588] mt-1">
+                    Cập nhật thông tin hồ sơ và địa chỉ email của bạn.
+                  </p>
+                </div>
+              </div>
+              <form id="admin-profile-form" class="flex flex-col gap-6">
+                <div class="flex flex-col sm:flex-row gap-6 items-start">
+                  <div class="flex flex-col gap-3 items-center">
+                    <div
+                      id="admin-avatar-preview"
+                      class="size-24 sm:size-32 rounded-full bg-cover bg-center border-4 border-[#f0f2f4] flex items-center justify-center bg-primary text-white text-3xl font-bold"
+                    >
+                      <span id="admin-avatar-initials">AD</span>
+                    </div>
+                    <input
+                      type="file"
+                      id="admin-avatar-input"
+                      class="hidden"
+                      accept="image/jpeg, image/png"
+                    />
+                    <button
+                      type="button"
+                      onclick="
+                        document.getElementById('admin-avatar-input').click()
+                      "
+                      class="text-sm font-semibold text-primary hover:text-blue-600 transition-colors"
+                    >
+                      Thay đổi ảnh
+                    </button>
+                  </div>
+                  <div
+                    class="flex-1 w-full grid grid-cols-1 md:grid-cols-2 gap-6"
+                  >
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-bold text-[#111417]"
+                        >Họ và tên</label
+                      >
+                      <input
+                        id="admin-fullname"
+                        class="h-10 px-3 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary w-full"
+                        type="text"
+                      />
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-bold text-[#111417]"
+                        >Email</label
+                      >
+                      <input
+                        id="admin-email"
+                        class="h-10 px-3 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary w-full"
+                        type="email"
+                      />
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-bold text-[#111417]"
+                        >Số điện thoại</label
+                      >
+                      <input
+                        id="admin-phone"
+                        class="h-10 px-3 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary w-full"
+                        type="tel"
+                      />
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-bold text-[#111417]"
+                        >Vai trò</label
+                      >
+                      <input
+                        id="admin-role"
+                        disabled
+                        value="Quản trị viên (Admin)"
+                        class="h-10 px-3 rounded-lg border border-[#e5e7eb] bg-gray-50 text-gray-500 text-sm cursor-not-allowed w-full"
+                        type="text"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="flex justify-end pt-4">
+                  <button
+                    id="btn-update-profile"
+                    type="button"
+                    onclick="updateAdminProfile()"
+                    class="px-6 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-blue-600 transition-colors shadow-sm"
+                  >
+                    Lưu thông tin
+                  </button>
+                </div>
+              </form>
+            </div>
+            <div
+              class="bg-surface-light rounded-xl border border-[#e5e7eb] shadow-sm p-6 sm:p-8"
+            >
+              <div
+                class="flex items-center justify-between mb-8 border-b border-[#f0f2f4] pb-4"
+              >
+                <div>
+                  <h3 class="text-xl font-bold text-[#111417]">Bảo mật</h3>
+                  <p class="text-sm text-[#637588] mt-1">
+                    Đổi mật khẩu để bảo vệ tài khoản của bạn.
+                  </p>
+                </div>
+              </div>
+              <form id="admin-password-form" class="max-w-2xl">
+                <div class="flex flex-col gap-5">
+                  <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-bold text-[#111417]"
+                      >Mật khẩu hiện tại</label
+                    >
+                    <input
+                      id="admin-current-pass"
+                      class="h-10 px-3 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary w-full"
+                      placeholder="••••••••"
+                      type="password"
+                    />
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-bold text-[#111417]"
+                        >Mật khẩu mới</label
+                      >
+                      <input
+                        id="admin-new-pass"
+                        class="h-10 px-3 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary w-full"
+                        placeholder="••••••••"
+                        type="password"
+                      />
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                      <label class="text-sm font-bold text-[#111417]"
+                        >Xác nhận mật khẩu</label
+                      >
+                      <input
+                        id="admin-confirm-pass"
+                        class="h-10 px-3 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary w-full"
+                        placeholder="••••••••"
+                        type="password"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="flex justify-start pt-6">
+                  <button
+                    id="btn-change-password"
+                    type="button"
+                    onclick="changeAdminPassword()"
+                    class="px-6 py-2.5 rounded-lg bg-[#111417] text-white text-sm font-bold hover:bg-gray-800 transition-colors shadow-sm"
+                  >
+                    Cập nhật mật khẩu
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/admin_infor.js"></script>
+  </body>
+</html>

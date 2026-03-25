@@ -1,0 +1,98 @@
+<!doctype html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Quản trị</title>
+    <script>
+      // Lấy Role từ bộ nhớ trình duyệt
+      const userRole =
+        localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+
+      // Nếu không phải ADMIN -> về trang chủ hoặc trang đăng nhập ngay lập tức
+      if (userRole !== "ADMIN" && userRole !== "ROLE_ADMIN") {
+        window.location.replace("home.html"); // Chuyển hướng tức thì, không lưu lịch sử trình duyệt
+      }
+    </script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1d7fe2",
+              "background-light": "#f6f7f8",
+              "background-dark": "#111921",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1a242f",
+            },
+            fontFamily: {
+              display: ["Manrope", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .filled {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-[#111417] overflow-hidden"
+  >
+    <div class="flex h-screen w-full">
+      <div id="admin-sidebar-placeholder" class="contents"></div>
+      <main
+        class="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light"
+      >
+        <div id="admin-header-placeholder" class="contents"></div>
+      </main>
+    </div>
+  </body>
+  <script src="js/common.js"></script>
+</html>

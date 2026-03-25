@@ -1,0 +1,412 @@
+<!doctype html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Hồ sơ cá nhân</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#00c7c7",
+              "background-light": "#ffffff",
+              "background-dark": "#17191c",
+              "sale-red": "#ef4444",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Inter", "sans-serif"],
+              body: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .mega-menu-trigger:hover .mega-menu-content {
+        display: flex;
+      }
+      .category-item:hover .subcategory-panel {
+        display: block;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-[#101818] dark:text-white antialiased"
+  >
+    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+      <div id="header-placeholder"></div>
+
+      <main
+        class="flex-1 w-full max-w-[1440px] mx-auto px-4 md:px-10 py-6 md:py-10"
+      >
+        <div class="flex flex-col lg:flex-row gap-8">
+          <aside
+            id="sidebar-placeholder"
+            class="w-full lg:w-64 shrink-0"
+          ></aside>
+          <div
+            class="flex-1 bg-white dark:bg-[#1e2125] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800"
+          >
+            <div
+              class="p-6 md:p-8 border-b border-gray-100 dark:border-gray-800"
+            >
+              <h1 class="text-xl font-bold text-[#101818] dark:text-white">
+                Hồ sơ của tôi
+              </h1>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Quản lý thông tin hồ sơ để bảo mật tài khoản
+              </p>
+            </div>
+            <div class="p-6 md:p-8 flex flex-col-reverse md:flex-row gap-8">
+              <div class="flex-1">
+                <form class="flex flex-col gap-6">
+                  <div
+                    class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6"
+                  >
+                    <label
+                      class="text-sm font-medium text-gray-600 dark:text-gray-300 md:w-32 md:text-right"
+                      >Họ và tên</label
+                    >
+                    <div class="flex-1">
+                      <input
+                        id="profile-fullname"
+                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-[#25282c] text-[#101818] dark:text-white text-sm focus:ring-primary focus:border-primary px-4 py-2.5"
+                        type="text"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6"
+                  >
+                    <label
+                      class="text-sm font-medium text-gray-600 dark:text-gray-300 md:w-32 md:text-right"
+                      >Email</label
+                    >
+                    <div class="flex-1 flex items-center gap-2 relative">
+                      <span
+                        id="display-email"
+                        class="text-[#101818] dark:text-white text-sm font-medium truncate"
+                        >Đang tải...</span
+                      >
+
+                      <input
+                        id="input-email"
+                        class="hidden w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-[#25282c] text-[#101818] dark:text-white text-sm focus:ring-primary focus:border-primary px-4 py-2.5"
+                        type="email"
+                      />
+
+                      <button
+                        type="button"
+                        onclick="enableEdit('email')"
+                        class="text-xs text-primary underline ml-2 hover:text-primary/80 whitespace-nowrap"
+                      >
+                        Thay đổi
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6"
+                  >
+                    <label
+                      class="text-sm font-medium text-gray-600 dark:text-gray-300 md:w-32 md:text-right"
+                      >Số điện thoại</label
+                    >
+                    <div class="flex-1 flex items-center gap-2 relative">
+                      <span
+                        id="display-phone"
+                        class="text-[#101818] dark:text-white text-sm font-medium truncate"
+                        >Đang tải...</span
+                      >
+
+                      <input
+                        id="input-phone"
+                        class="hidden w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-[#25282c] text-[#101818] dark:text-white text-sm focus:ring-primary focus:border-primary px-4 py-2.5"
+                        type="tel"
+                      />
+
+                      <button
+                        type="button"
+                        onclick="enableEdit('phone')"
+                        class="text-xs text-primary underline ml-2 hover:text-primary/80 whitespace-nowrap"
+                      >
+                        Thay đổi
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6"
+                  >
+                    <label
+                      class="text-sm font-medium text-gray-600 dark:text-gray-300 md:w-32 md:text-right"
+                      >Giới tính</label
+                    >
+                    <div class="flex-1 flex items-center gap-6">
+                      <label>
+                        <input
+                          type="radio"
+                          name="gender"
+                          id="gender-male"
+                          value="1"
+                        />
+                        Nam
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          name="gender"
+                          id="gender-female"
+                          value="0"
+                        />
+                        Nữ
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          name="gender"
+                          id="gender-other"
+                          value="2"
+                        />
+                        Khác
+                      </label>
+                    </div>
+                  </div>
+                  <div
+                    class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6"
+                  >
+                    <label
+                      class="text-sm font-medium text-gray-600 dark:text-gray-300 md:w-32 md:text-right"
+                      >Ngày sinh</label
+                    >
+                    <div class="flex-1">
+                      <input
+                        id="profile-dob"
+                        class="w-full md:w-48 rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-[#25282c] text-[#101818] dark:text-white text-sm focus:ring-primary focus:border-primary px-4 py-2.5"
+                        type="date"
+                        value="1995-10-20"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 mt-4"
+                  >
+                    <div class="md:w-32"></div>
+                    <div class="flex-1">
+                      <button
+                        id="btn-save-profile"
+                        onclick="handleUpdateProfile()"
+                        class="bg-primary hover:bg-primary/90 text-[#101818] font-bold py-2.5 px-6 rounded-lg transition-colors shadow-[0_4px_14px_0_rgba(0,199,199,0.39)]"
+                        type="button"
+                      >
+                        Lưu thay đổi
+                      </button>
+                    </div>
+                  </div>
+                </form>
+                <div
+                  class="w-full h-px bg-gray-100 dark:bg-gray-800 my-10"
+                  id="password-section"
+                ></div>
+                <div class="mb-6">
+                  <h2 class="text-lg font-bold text-[#101818] dark:text-white">
+                    Đổi mật khẩu
+                  </h2>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Vui lòng nhập mật khẩu hiện tại để thay đổi mật khẩu mới
+                  </p>
+                </div>
+
+                <form class="flex flex-col gap-6" onsubmit="return false;">
+                  <div
+                    class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6"
+                  >
+                    <label
+                      class="text-sm font-medium text-gray-600 dark:text-gray-300 md:w-32 md:text-right"
+                    >
+                      Mật khẩu hiện tại
+                    </label>
+                    <div class="flex-1 relative">
+                      <input
+                        id="current-pass"
+                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-[#25282c] text-[#101818] dark:text-white text-sm focus:ring-primary focus:border-primary px-4 py-2.5 pr-10"
+                        placeholder="Nhập mật khẩu hiện tại"
+                        type="password"
+                      />
+                      <button
+                        onclick="togglePassVisibility('current-pass', this)"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        type="button"
+                      >
+                        <span class="material-symbols-outlined text-[20px]"
+                          >visibility_off</span
+                        >
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6"
+                  >
+                    <label
+                      class="text-sm font-medium text-gray-600 dark:text-gray-300 md:w-32 md:text-right"
+                    >
+                      Mật khẩu mới
+                    </label>
+                    <div class="flex-1 relative">
+                      <input
+                        id="new-pass"
+                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-[#25282c] text-[#101818] dark:text-white text-sm focus:ring-primary focus:border-primary px-4 py-2.5 pr-10"
+                        placeholder="Nhập mật khẩu mới (tối thiểu 8 ký tự)"
+                        type="password"
+                      />
+                      <button
+                        onclick="togglePassVisibility('new-pass', this)"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        type="button"
+                      >
+                        <span class="material-symbols-outlined text-[20px]"
+                          >visibility_off</span
+                        >
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6"
+                  >
+                    <label
+                      class="text-sm font-medium text-gray-600 dark:text-gray-300 md:w-32 md:text-right"
+                    >
+                      Xác nhận MK
+                    </label>
+                    <div class="flex-1 relative">
+                      <input
+                        id="confirm-pass"
+                        class="w-full rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-[#25282c] text-[#101818] dark:text-white text-sm focus:ring-primary focus:border-primary px-4 py-2.5 pr-10"
+                        placeholder="Nhập lại mật khẩu mới"
+                        type="password"
+                      />
+                      <button
+                        onclick="togglePassVisibility('confirm-pass', this)"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        type="button"
+                      >
+                        <span class="material-symbols-outlined text-[20px]"
+                          >visibility_off</span
+                        >
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 mt-2"
+                  >
+                    <div class="md:w-32"></div>
+                    <div class="flex-1">
+                      <button
+                        id="btn-change-pass"
+                        onclick="handleChangePassword()"
+                        class="bg-primary hover:bg-primary/90 text-[#101818] font-bold py-2.5 px-6 rounded-lg transition-colors shadow-[0_4px_14px_0_rgba(0,199,199,0.39)]"
+                        type="button"
+                      >
+                        Cập nhật mật khẩu
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+              <div
+                class="hidden md:block w-px bg-gray-100 dark:bg-gray-800 mx-4"
+              ></div>
+              <div
+                class="w-full md:w-64 flex flex-col items-center justify-start pt-2 gap-5"
+              >
+                <input
+                  type="file"
+                  id="avatar-input"
+                  class="hidden"
+                  accept=".jpeg, .jpg, .png"
+                  onchange="handleUploadAvatar(this)"
+                />
+
+                <div
+                  onclick="document.getElementById('avatar-input').click()"
+                  class="size-32 rounded-full ring-4 ring-gray-100 dark:ring-gray-800 overflow-hidden relative group cursor-pointer shadow-md"
+                >
+                  <div
+                    id="avatar-initials"
+                    class="w-full h-full bg-gradient-to-br from-primary to-[#009999] flex items-center justify-center text-4xl text-white font-bold"
+                  >
+                    NA
+                  </div>
+
+                  <img
+                    id="avatar-img"
+                    src=""
+                    alt="User Avatar"
+                    class="absolute inset-0 w-full h-full object-cover hidden"
+                  />
+
+                  <div
+                    class="absolute inset-0 bg-black/30 hidden group-hover:flex items-center justify-center text-white text-sm font-medium transition-all backdrop-blur-[1px]"
+                  >
+                    Sửa
+                  </div>
+                </div>
+
+                <button
+                  onclick="document.getElementById('avatar-input').click()"
+                  class="border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#25282c] hover:text-primary hover:border-primary font-medium py-2 px-4 rounded-lg text-sm transition-all"
+                  type="button"
+                >
+                  Chọn ảnh
+                </button>
+
+                <div class="text-center">
+                  <p class="text-xs text-gray-400 mb-1">
+                    Dụng lượng file tối đa 1 MB
+                  </p>
+                  <p class="text-xs text-gray-400">Định dạng: .JPEG, .PNG</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      
+      <div id="footer-placeholder"></div>
+    </div>
+    <script src="js/common.js"></script>
+    <script src="js/home.js"></script>
+    <script src="js/user_infor.js"></script>
+  </body>
+</html>

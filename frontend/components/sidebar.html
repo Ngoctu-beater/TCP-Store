@@ -1,0 +1,86 @@
+<div
+  class="flex items-center gap-3 px-2 mb-6 pb-6 border-b border-gray-100 dark:border-gray-800"
+>
+  <div
+    class="relative overflow-hidden size-12 rounded-full bg-gradient-to-br from-primary to-[#009999] text-white flex items-center justify-center text-lg font-bold shadow-sm ring-2 ring-white dark:ring-[#17191c]"
+  >
+    <span class="header-avatar-initials">NA</span>
+    <img
+      src=""
+      alt="Avatar"
+      class="header-avatar-img absolute inset-0 w-full h-full object-cover hidden"
+    />
+  </div>
+
+  <div class="flex flex-col">
+    <span
+      class="display-name-global font-bold text-[#101818] dark:text-white truncate max-w-[150px]"
+      >Khách</span
+    >
+    <a
+      class="text-xs text-gray-500 dark:text-gray-400 hover:text-primary flex items-center gap-0.5 mt-0.5"
+      href="user_infor.html"
+    >
+      <span class="material-symbols-outlined text-[14px]">edit</span>
+      Sửa hồ sơ
+    </a>
+  </div>
+</div>
+
+<nav class="flex flex-col gap-1" id="sidebar-nav">
+  <a
+    href="user_infor.html"
+    class="sidebar-link flex items-center gap-3 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-[#f0f5f5] dark:hover:bg-[#25282c] rounded-lg transition-colors group"
+  >
+    <span
+      class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors"
+      >person</span
+    >
+    Thông tin tài khoản
+  </a>
+
+  <a
+    href="address.html"
+    class="sidebar-link flex items-center gap-3 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-[#f0f5f5] dark:hover:bg-[#25282c] rounded-lg transition-colors group"
+  >
+    <span
+      class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors"
+      >location_on</span
+    >
+    Địa chỉ
+  </a>
+
+  <a
+    href="order.html"
+    class="sidebar-link flex items-center gap-3 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-[#f0f5f5] dark:hover:bg-[#25282c] rounded-lg transition-colors group"
+  >
+    <span
+      class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors"
+      >shopping_bag</span
+    >
+    Đơn mua
+  </a>
+
+  <a
+    href="#"
+    class="sidebar-link flex items-center gap-3 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:text-primary hover:bg-[#f0f5f5] dark:hover:bg-[#25282c] rounded-lg transition-colors group"
+  >
+    <span
+      class="material-symbols-outlined text-[20px] group-hover:text-primary transition-colors"
+      >notifications</span
+    >
+    Thông báo
+  </a>
+
+  <a
+    onclick="AuthUtils.logout()"
+    href="login.html"
+    class="flex items-center gap-3 px-4 py-2.5 text-gray-600 dark:text-gray-300 hover:text-sale-red hover:bg-[#f0f5f5] dark:hover:bg-[#25282c] rounded-lg transition-colors group mt-2"
+  >
+    <span
+      class="material-symbols-outlined text-[20px] group-hover:text-sale-red transition-colors"
+      >logout</span
+    >
+    Đăng xuất
+  </a>
+</nav>

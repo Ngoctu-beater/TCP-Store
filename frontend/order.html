@@ -1,0 +1,235 @@
+<!doctype html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Đơn hàng</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#00c7c7",
+              "background-light": "#ffffff",
+              "background-dark": "#17191c",
+              "sale-red": "#ef4444",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Inter", "sans-serif"],
+              body: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      .material-symbols-outlined.filled {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+
+      .mega-menu-trigger:hover .mega-menu-content {
+        display: flex;
+      }
+      .category-item:hover .subcategory-panel {
+        display: block;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-[#101818] dark:text-white antialiased"
+  >
+    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+      <div id="header-placeholder"></div>
+
+      <main
+        class="flex-1 w-full max-w-[1440px] mx-auto px-4 md:px-10 py-6 md:py-10"
+      >
+        <div class="flex flex-col lg:flex-row gap-8">
+          <aside
+            id="sidebar-placeholder"
+            class="w-full lg:w-64 shrink-0"
+          ></aside>
+          <div class="flex-1 w-full">
+            <div
+              class="bg-white dark:bg-[#1e2125] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 sticky top-[72px] z-30"
+            >
+              <div class="flex items-center overflow-x-auto hide-scrollbar">
+                <button
+                  class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
+                >
+                  Tất cả
+                </button>
+                <button
+                  class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
+                >
+                  Chờ thanh toán
+                </button>
+                <button
+                  class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
+                >
+                  Vận chuyển
+                </button>
+                <button
+                  class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
+                >
+                  Đang giao
+                </button>
+                <button
+                  class="whitespace-nowrap px-6 py-4 text-sm font-bold border-b-2 border-primary text-primary"
+                >
+                  Hoàn thành
+                </button>
+                <button
+                  class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
+                >
+                  Đã hủy
+                </button>
+                <button
+                  class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
+                >
+                  Trả hàng/Hoàn tiền
+                </button>
+              </div>
+            </div>
+            <div class="mb-6">
+              <div class="relative w-full">
+                <span
+                  class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+                >
+                  <span class="material-symbols-outlined text-gray-400"
+                    >search</span
+                  >
+                </span>
+                <input
+                  class="w-full bg-gray-50 dark:bg-[#1e2125] border border-gray-200 dark:border-gray-700 rounded-lg py-3 pl-10 pr-4 text-sm focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-white"
+                  placeholder="Tìm kiếm theo Tên Shop, ID đơn hàng hoặc Tên sản phẩm..."
+                  type="text"
+                />
+              </div>
+            </div>
+            <div id="orders-container" class="flex flex-col gap-4"></div>
+          </div>
+        </div>
+        <div
+          id="review-modal"
+          class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center backdrop-blur-sm transition-opacity"
+        >
+          <div
+            class="bg-white dark:bg-[#1e2125] rounded-2xl shadow-xl w-full max-w-md p-6 relative animate-fade-in-up"
+          >
+            <button
+              onclick="closeReviewModal()"
+              class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            >
+              <span class="material-symbols-outlined">close</span>
+            </button>
+            <h3 class="text-xl font-bold text-[#101818] dark:text-white mb-4">
+              Đánh giá sản phẩm
+            </h3>
+
+            <div
+              id="review-product-info"
+              class="flex items-center gap-3 mb-6 p-3 bg-gray-50 dark:bg-[#25282c] rounded-xl border border-gray-100 dark:border-gray-800"
+            ></div>
+
+            <div class="mb-5 flex flex-col items-center">
+              <label
+                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                >Chất lượng sản phẩm</label
+              >
+              <div class="flex gap-2" id="star-rating">
+                <span
+                  class="material-symbols-outlined cursor-pointer text-yellow-400 filled text-4xl transition-transform hover:scale-110"
+                  onclick="setRating(1)"
+                  >star</span
+                >
+                <span
+                  class="material-symbols-outlined cursor-pointer text-yellow-400 filled text-4xl transition-transform hover:scale-110"
+                  onclick="setRating(2)"
+                  >star</span
+                >
+                <span
+                  class="material-symbols-outlined cursor-pointer text-yellow-400 filled text-4xl transition-transform hover:scale-110"
+                  onclick="setRating(3)"
+                  >star</span
+                >
+                <span
+                  class="material-symbols-outlined cursor-pointer text-yellow-400 filled text-4xl transition-transform hover:scale-110"
+                  onclick="setRating(4)"
+                  >star</span
+                >
+                <span
+                  class="material-symbols-outlined cursor-pointer text-yellow-400 filled text-4xl transition-transform hover:scale-110"
+                  onclick="setRating(5)"
+                  >star</span
+                >
+              </div>
+              <input type="hidden" id="review-rating" value="5" />
+            </div>
+
+            <div class="mb-6">
+              <textarea
+                id="review-comment"
+                rows="4"
+                class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1d21] text-[#101818] dark:text-white focus:ring-primary focus:border-primary p-4 text-sm"
+                placeholder="Hãy chia sẻ nhận xét của bạn về sản phẩm này nhé!"
+              ></textarea>
+            </div>
+
+            <button
+              onclick="submitReview(this)"
+              class="w-full bg-primary text-[#101818] font-bold py-3.5 rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
+            >
+              Gửi đánh giá
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <div id="footer-placeholder"></div>
+    </div>
+  </body>
+
+  <script src="js/common.js"></script>
+  <script src="js/order.js"></script>
+</html>

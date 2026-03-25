@@ -1,0 +1,525 @@
+<!doctype html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Đăng nhập &amp; Đăng ký</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#00c7c7",
+              "background-light": "#ffffff",
+              "background-dark": "#17191c",
+              "sale-red": "#ef4444",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Inter", "sans-serif"],
+              body: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-[#101818] dark:text-white antialiased overflow-hidden"
+  >
+    <div class="flex min-h-screen w-full">
+      <div
+        class="hidden lg:flex w-1/2 relative bg-[#101818] items-center justify-center overflow-hidden"
+      >
+        <div class="absolute inset-0 z-0">
+          <img
+            alt="Background"
+            class="w-full h-full object-cover opacity-60"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9ZsGoFFnHbsvjSZuSZa8kfnGR5okKz_UrDnd6J1-4bITjShsdc1ksvvZ2qCOnCDj3mQEUCE197VTOkB5mvhD4ET1iJ5dr34tktaZCKP379HADs1zbgZ4moPHG_VG45j1ojEVbWcnHrCFhgtbCR3019mSt7Inh1ycNMkm8vohF9gWnUboANAnepIFZLeIFgWj0eTgv31W-OKsjMZso4HsHnWMxUPjiAqpJGTOnSNh9cMYqYJASk1IgGbS0Qc9b1uwB8fGaMURNRX0"
+          />
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-[#101818] via-[#101818]/80 to-transparent"
+          ></div>
+        </div>
+        <div class="relative z-10 p-12 flex flex-col gap-8 max-w-xl text-white">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="size-12 text-primary">
+              <img src="image/logo.png" alt="Logo" />
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tight">
+              TuComputer Store
+            </h1>
+          </div>
+          <div class="space-y-4">
+            <h2
+              class="text-4xl md:text-5xl font-bold leading-tight tracking-tight"
+            >
+              Công Nghệ Đỉnh Cao
+            </h2>
+            <h2
+              class="text-4xl md:text-5xl font-bold leading-tight tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400"
+            >
+              Giá Cực Tốt
+            </h2>
+            <p
+              class="text-gray-300 text-lg font-normal leading-relaxed max-w-lg"
+            >
+              Đăng nhập ngay để khám phá hệ sinh thái công nghệ hàng đầu Việt
+              Nam, theo dõi đơn hàng và nhận ưu đãi độc quyền.
+            </p>
+          </div>
+          <ul
+            class="flex flex-col gap-4 mt-4 text-sm font-medium text-gray-300"
+          >
+            <li class="flex items-center gap-3">
+              <div
+                class="flex items-center justify-center size-6 rounded-full bg-primary/20 text-primary"
+              >
+                <span class="material-symbols-outlined text-[16px] font-bold"
+                  >check</span
+                >
+              </div>
+              <span>Cam kết chính hãng 100%</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div
+                class="flex items-center justify-center size-6 rounded-full bg-primary/20 text-primary"
+              >
+                <span class="material-symbols-outlined text-[16px] font-bold"
+                  >check</span
+                >
+              </div>
+              <span>Miễn phí vận chuyển cho thành viên</span>
+            </li>
+            <li class="flex items-center gap-3">
+              <div
+                class="flex items-center justify-center size-6 rounded-full bg-primary/20 text-primary"
+              >
+                <span class="material-symbols-outlined text-[16px] font-bold"
+                  >check</span
+                >
+              </div>
+              <span>Tích điểm đổi quà hấp dẫn</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div
+        class="w-full lg:w-1/2 flex flex-col bg-white dark:bg-[#17191c] relative overflow-y-auto h-screen hide-scrollbar"
+      >
+        <div
+          class="absolute top-0 left-0 w-full px-6 py-6 md:px-10 flex justify-between items-center z-20"
+        >
+          <a
+            class="flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-primary transition-colors group"
+            href="home.html"
+          >
+            <span
+              class="material-symbols-outlined text-lg group-hover:-translate-x-1 transition-transform"
+              >arrow_back</span
+            >
+            Trang chủ
+          </a>
+          <div
+            class="lg:hidden flex items-center gap-2 text-[#101818] dark:text-white"
+          >
+            <div class="size-6 text-primary">
+              <svg
+                class="w-full h-full"
+                fill="none"
+                viewBox="0 0 48 48"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M24 4L6 14V34L24 44L42 34V14L24 4Z"
+                  stroke="currentColor"
+                  stroke-linejoin="round"
+                  stroke-width="4"
+                ></path>
+              </svg>
+            </div>
+            <span class="font-bold text-lg">TuComputer Store</span>
+          </div>
+        </div>
+        <div
+          class="flex-1 flex flex-col justify-center px-6 sm:px-12 md:px-20 py-24 lg:py-12"
+        >
+          <div class="w-full max-w-[440px] mx-auto">
+            <input
+              checked=""
+              class="peer/login hidden"
+              id="tab-login"
+              name="auth-tabs"
+              type="radio"
+            />
+            <input
+              class="peer/register hidden"
+              id="tab-register"
+              name="auth-tabs"
+              type="radio"
+            />
+            <div
+              class="flex items-center gap-8 mb-10 border-b border-gray-100 dark:border-gray-800"
+            >
+              <label
+                class="cursor-pointer pb-3 text-lg font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all peer-checked/login:border-primary peer-checked/login:text-primary dark:peer-checked/login:text-primary"
+                for="tab-login"
+              >
+                <!-- Đăng nhập -->
+              </label>
+              <label
+                class="cursor-pointer pb-3 text-lg font-bold border-b-2 border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-all peer-checked/register:border-primary peer-checked/register:text-primary dark:peer-checked/register:text-primary"
+                for="tab-register"
+              >
+                <!-- Đăng ký -->
+              </label>
+            </div>
+            <div class="hidden peer-checked/login:block">
+              <div class="mb-8">
+                <h3
+                  class="text-2xl font-bold mb-2 text-[#101818] dark:text-white"
+                >
+                  Chào mừng trở lại!
+                </h3>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">
+                  Vui lòng nhập thông tin để truy cập tài khoản.
+                </p>
+              </div>
+              <form class="flex flex-col gap-5">
+                <div class="space-y-1.5">
+                  <label
+                    class="text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >Email / Số điện thoại</label
+                  >
+                  <div class="relative group">
+                    <span
+                      class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors material-symbols-outlined text-[20px]"
+                      >mail</span
+                    >
+                    <input
+                      id="login-email"
+                      class="w-full rounded-lg bg-gray-50 dark:bg-[#25282c] border-gray-200 dark:border-gray-700 text-sm px-10 py-3 focus:ring-1 focus:ring-primary focus:border-primary transition-all font-normal placeholder:text-gray-400"
+                      placeholder="name@example.com"
+                      type="text"
+                    />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <label
+                    class="text-sm font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    Mật khẩu
+                  </label>
+                  <div class="relative group">
+                    <span
+                      class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors material-symbols-outlined text-[20px]"
+                    >
+                      lock
+                    </span>
+
+                    <input
+                      id="login-password"
+                      class="w-full rounded-lg bg-gray-50 dark:bg-[#25282c] border-gray-200 dark:border-gray-700 text-sm px-10 py-3 focus:ring-1 focus:ring-primary focus:border-primary transition-all font-normal placeholder:text-gray-400"
+                      placeholder="••••••••"
+                      type="password"
+                    />
+
+                    <button
+                      onclick="UIUtils.togglePassword('login-password', this)"
+                      class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors outline-none"
+                      type="button"
+                    >
+                      <span class="material-symbols-outlined text-[20px]">
+                        visibility_off
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between mt-1">
+                  <div class="flex items-center">
+                    <input
+                      id="remember-me"
+                      type="checkbox"
+                      class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                    />
+                    <label
+                      for="remember-me"
+                      class="ml-2 text-sm text-gray-600 dark:text-gray-400"
+                    >
+                      Ghi nhớ đăng nhập
+                    </label>
+                  </div>
+                  <a
+                    class="text-sm font-bold text-primary hover:text-primary/80 transition-colors"
+                    href="#"
+                    >Quên mật khẩu?</a
+                  >
+                </div>
+                <button
+                  id="btn-login"
+                  onclick="handleLogin()"
+                  class="w-full mt-2 py-3.5 rounded-lg bg-primary text-[#101818] font-bold text-sm shadow-lg shadow-primary/25 hover:bg-primary/90 hover:shadow-primary/40 active:scale-[0.98] transition-all"
+                  type="button"
+                >
+                  Đăng nhập
+                </button>
+              </form>
+              <div class="relative my-8">
+                <div class="absolute inset-0 flex items-center">
+                  <span
+                    class="w-full border-t border-gray-200 dark:border-gray-800"
+                  ></span>
+                </div>
+                <div class="relative flex justify-center text-xs uppercase">
+                  <span
+                    class="bg-white dark:bg-[#17191c] px-3 text-gray-400 font-bold tracking-widest"
+                    >Hoặc</span
+                  >
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <button
+                  class="flex items-center justify-center gap-2.5 px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-[#25282c] hover:border-gray-300 dark:hover:border-gray-600 transition-all group"
+                >
+                  <svg
+                    class="w-5 h-5 group-hover:scale-110 transition-transform"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      fill="#4285F4"
+                    ></path>
+                    <path
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      fill="#34A853"
+                    ></path>
+                    <path
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z"
+                      fill="#FBBC05"
+                    ></path>
+                    <path
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      fill="#EA4335"
+                    ></path>
+                  </svg>
+                  <span
+                    class="text-sm font-semibold text-gray-600 dark:text-gray-300"
+                    >Google</span
+                  >
+                </button>
+                <button
+                  class="flex items-center justify-center gap-2.5 px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-[#25282c] hover:border-gray-300 dark:hover:border-gray-600 transition-all group"
+                >
+                  <svg
+                    class="w-5 h-5 text-[#1877F2] group-hover:scale-110 transition-transform"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                    ></path>
+                  </svg>
+                  <span
+                    class="text-sm font-semibold text-gray-600 dark:text-gray-300"
+                    >Facebook</span
+                  >
+                </button>
+              </div>
+              <div class="mt-8 text-center">
+                <p class="text-sm text-gray-500 font-medium">
+                  Chưa có tài khoản?
+                  <label
+                    class="text-primary font-bold cursor-pointer hover:underline"
+                    for="tab-register"
+                    >Đăng ký ngay</label
+                  >
+                </p>
+              </div>
+            </div>
+            <div class="hidden peer-checked/register:block">
+              <div class="mb-8">
+                <h3
+                  class="text-2xl font-bold mb-2 text-[#101818] dark:text-white"
+                >
+                  Tạo tài khoản mới
+                </h3>
+                <p class="text-gray-500 dark:text-gray-400 text-sm">
+                  Điền thông tin bên dưới để bắt đầu.
+                </p>
+              </div>
+              <form class="flex flex-col gap-5">
+                <div class="space-y-1.5">
+                  <label
+                    class="text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >Họ và tên</label
+                  >
+                  <div class="relative group">
+                    <span
+                      class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors material-symbols-outlined text-[20px]"
+                      >person</span
+                    >
+                    <input
+                      id="reg-fullname"
+                      class="w-full rounded-lg bg-gray-50 dark:bg-[#25282c] border-gray-200 dark:border-gray-700 text-sm px-10 py-3 focus:ring-1 focus:ring-primary focus:border-primary transition-all font-normal"
+                      placeholder="Nguyễn Văn A"
+                      type="text"
+                    />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <label
+                    class="text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >Số điện thoại</label
+                  >
+                  <div class="relative group">
+                    <span
+                      class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors material-symbols-outlined text-[20px]"
+                      >call</span
+                    >
+                    <input
+                      id="reg-phone"
+                      class="w-full rounded-lg bg-gray-50 dark:bg-[#25282c] border-gray-200 dark:border-gray-700 text-sm px-10 py-3 focus:ring-1 focus:ring-primary focus:border-primary transition-all font-normal"
+                      placeholder="0912 345 678"
+                      type="tel"
+                    />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <label
+                    class="text-sm font-semibold text-gray-700 dark:text-gray-300"
+                    >Email</label
+                  >
+                  <div class="relative group">
+                    <span
+                      class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors material-symbols-outlined text-[20px]"
+                      >mail</span
+                    >
+                    <input
+                      id="reg-email"
+                      class="w-full rounded-lg bg-gray-50 dark:bg-[#25282c] border-gray-200 dark:border-gray-700 text-sm px-10 py-3 focus:ring-1 focus:ring-primary focus:border-primary transition-all font-normal"
+                      placeholder="name@example.com"
+                      type="email"
+                    />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <label
+                    class="text-sm font-semibold text-gray-700 dark:text-gray-300"
+                  >
+                    Mật khẩu
+                  </label>
+                  <div class="relative group">
+                    <span
+                      class="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors material-symbols-outlined text-[20px]"
+                    >
+                      lock
+                    </span>
+
+                    <input
+                      id="reg-password"
+                      class="w-full rounded-lg bg-gray-50 dark:bg-[#25282c] border-gray-200 dark:border-gray-700 text-sm px-10 py-3 focus:ring-1 focus:ring-primary focus:border-primary transition-all font-normal placeholder:text-gray-400"
+                      placeholder="••••••••"
+                      type="password"
+                    />
+
+                    <button
+                      onclick="UIUtils.togglePassword('reg-password', this)"
+                      class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors outline-none"
+                      type="button"
+                    >
+                      <span class="material-symbols-outlined text-[20px]">
+                        visibility_off
+                      </span>
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-400 mt-1 font-medium">
+                    Gợi ý: Mật khẩu nên có ít nhất 8 ký tự.
+                  </p>
+                </div>
+                <div class="flex items-start gap-3 mt-2">
+                  <input
+                    id="terms"
+                    type="checkbox"
+                    onchange="toggleRegisterButton()"
+                    class="mt-1 rounded border-gray-300 text-primary focus:ring-primary w-4 h-4 cursor-pointer"
+                  />
+                  <label
+                    class="text-sm text-gray-500 leading-snug select-none"
+                    for="terms"
+                  >
+                    Tôi đồng ý với
+                    <a
+                      class="text-primary hover:underline font-semibold"
+                      href="#"
+                      >Điều khoản dịch vụ</a
+                    >
+                    và
+                    <a
+                      class="text-primary hover:underline font-semibold"
+                      href="#"
+                      >Chính sách bảo mật.</a
+                    >
+                  </label>
+                </div>
+                <button
+                  id="btn-register"
+                  type="button"
+                  onclick="handleRegister()"
+                  disabled
+                  class="w-full py-3 px-4 mt-6 rounded-lg text-sm font-bold transition-all duration-200 bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed opacity-70"
+                >
+                  Tạo tài khoản
+                </button>
+              </form>
+              <div class="mt-8 text-center">
+                <p class="text-sm text-gray-500 font-medium">
+                  Đã có tài khoản?
+                  <label
+                    class="text-primary font-bold cursor-pointer hover:underline"
+                    for="tab-login"
+                    >Đăng nhập ngay</label
+                  >
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/common.js"></script>
+    <script src="js/auth.js"></script>
+  </body>
+</html>

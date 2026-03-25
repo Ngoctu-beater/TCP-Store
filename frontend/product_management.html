@@ -1,0 +1,501 @@
+<!doctype html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Quản lý sản phẩm</title>
+    <script>
+      const userRole =
+        localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+      if (userRole !== "ADMIN" && userRole !== "ROLE_ADMIN") {
+        window.location.replace("home.html");
+      }
+    </script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1d7fe2",
+              "background-light": "#f6f7f8",
+              "background-dark": "#111921",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1a242f",
+            },
+            fontFamily: {
+              display: ["Manrope", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .filled {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-[#111417] overflow-hidden"
+  >
+    <div class="flex h-screen w-full">
+      <div id="admin-sidebar-placeholder" class="contents"></div>
+      <main
+        class="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light"
+      >
+        <div id="admin-header-placeholder" class="contents"></div>
+        <div class="flex-1 overflow-y-auto p-6">
+          <div class="max-w-[1400px] mx-auto flex flex-col gap-6">
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+            >
+              <div>
+                <h1 class="text-2xl font-bold text-[#111417]">
+                  Danh sách sản phẩm
+                </h1>
+                <p class="text-sm text-[#637588] mt-1">
+                  Quản lý tất cả sản phẩm trong cửa hàng
+                </p>
+              </div>
+              <button
+                onclick="openProductModal()"
+                class="flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-blue-600 transition-colors shadow-sm"
+              >
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                Thêm sản phẩm mới
+              </button>
+            </div>
+            <div
+              class="bg-surface-light p-4 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col lg:flex-row gap-4 items-center justify-between"
+            >
+              <div class="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+                <div class="relative w-full sm:w-80">
+                  <span
+                    class="material-symbols-outlined absolute left-3 top-2.5 text-[#637588] text-[20px]"
+                    >search</span
+                  >
+                  <input
+                    id="search-product"
+                    class="h-10 pl-10 pr-4 rounded-lg border border-[#e5e7eb] bg-[#f9fafb] text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-full"
+                    placeholder="Tìm kiếm tên sản phẩm..."
+                    type="text"
+                  />
+                </div>
+              </div>
+              <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+                <select
+                  id="filter-category"
+                  class="h-10 pl-3 pr-8 rounded-lg border border-[#e5e7eb] bg-white text-sm text-[#111417] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer min-w-[160px]"
+                >
+                  <option value="">Tất cả danh mục</option>
+                </select>
+                <select
+                  id="filter-status"
+                  class="h-10 pl-3 pr-8 rounded-lg border border-[#e5e7eb] bg-white text-sm text-[#111417] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer min-w-[160px]"
+                >
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="IN_STOCK">Còn hàng</option>
+                  <option value="OUT_STOCK">Hết hàng</option>
+                  <option value="PRE_ORDER">Đặt trước</option>
+                </select>
+              </div>
+            </div>
+            <div
+              class="bg-surface-light rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col overflow-hidden"
+            >
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead class="bg-[#f9fafb]">
+                    <tr>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] w-[80px] text-center"
+                      >
+                        Hình ảnh
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Tên sản phẩm
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Danh mục
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Giá bán (VND)
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Tồn kho
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Trạng thái
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Hiển thị
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Hành động
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="product-table-body"
+                    class="divide-y divide-[#e5e7eb]"
+                  ></tbody>
+                </table>
+              </div>
+              <div
+                class="p-4 border-t border-[#e5e7eb] flex flex-col sm:flex-row items-center justify-between gap-4"
+              >
+                <p id="pagination-info" class="text-sm text-[#637588]">
+                  Đang tải dữ liệu...
+                </p>
+                <div class="flex items-center gap-1">
+                  <button
+                    id="btn-prev-page"
+                    onclick="changePage(-1)"
+                    class="size-8 flex items-center justify-center rounded-lg border border-[#e5e7eb] text-[#637588] hover:bg-[#f0f2f4] disabled:opacity-50"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >chevron_left</span
+                    >
+                  </button>
+                  <button
+                    id="current-page-number"
+                    class="size-8 flex items-center justify-center rounded-lg bg-primary text-white text-sm font-bold"
+                  >
+                    1
+                  </button>
+                  <button
+                    id="btn-next-page"
+                    onclick="changePage(1)"
+                    class="size-8 flex items-center justify-center rounded-lg border border-[#e5e7eb] text-[#637588] hover:bg-[#f0f2f4] disabled:opacity-50"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >chevron_right</span
+                    >
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+    <div
+      id="product-modal"
+      class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center backdrop-blur-sm transition-opacity"
+    >
+      <div
+        class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden transform transition-all flex flex-col h-[90vh]"
+      >
+        <div
+          class="px-6 py-4 border-b border-[#e5e7eb] flex justify-between items-center bg-gray-50"
+        >
+          <h3 id="modal-product-title" class="text-xl font-bold text-[#111417]">
+            Thêm sản phẩm mới
+          </h3>
+          <button
+            onclick="closeProductModal()"
+            class="text-gray-400 hover:text-red-500 transition-colors"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1 bg-gray-50/50">
+          <form id="product-form" class="flex flex-col gap-8">
+            <input type="hidden" id="modal-product-id" />
+
+            <div
+              class="bg-white p-6 rounded-xl border border-[#e5e7eb] shadow-sm"
+            >
+              <h4
+                class="font-bold text-primary mb-4 flex items-center gap-2 border-b pb-2"
+              >
+                <span class="material-symbols-outlined">info</span>Thông tin cơ
+                bản
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-bold text-[#111417] mb-1"
+                      >Tên sản phẩm <span class="text-red-500">*</span></label
+                    ><input
+                      type="text"
+                      id="modal-product-name"
+                      required
+                      class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-bold text-[#111417] mb-1"
+                      >Mã SKU <span class="text-red-500">*</span></label
+                    ><input
+                      type="text"
+                      id="modal-product-sku"
+                      required
+                      class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-bold text-[#111417] mb-1"
+                      >Danh mục <span class="text-red-500">*</span></label
+                    >
+                    <select
+                      id="modal-product-category"
+                      onchange="handleCategoryChange()"
+                      required
+                      class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                    ></select>
+                  </div>
+                  <div class="flex items-center gap-2 mt-2">
+                    <input
+                      type="checkbox"
+                      id="modal-product-featured"
+                      class="w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary"
+                    />
+                    <label
+                      for="modal-product-featured"
+                      class="text-sm font-bold text-orange-600"
+                      >Sản phẩm nổi bật (Hiển thị lên trang chủ)</label
+                    >
+                  </div>
+                </div>
+                <div class="space-y-4">
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                      <label class="block text-sm font-bold text-[#111417] mb-1"
+                        >Giá nhập (VNĐ)</label
+                      >
+                      <input
+                        type="number"
+                        id="modal-product-cost-price"
+                        required
+                        class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-bold text-[#111417] mb-1"
+                        >Giá niêm yết (VNĐ)</label
+                      >
+                      <input
+                        type="number"
+                        id="modal-product-base-price"
+                        required
+                        class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-bold text-[#111417] mb-1"
+                        >Giá bán (VNĐ)
+                        <span class="text-red-500">*</span></label
+                      >
+                      <input
+                        type="number"
+                        id="modal-product-sale-price"
+                        required
+                        class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-bold text-[#111417] mb-1"
+                        >Tồn kho <span class="text-red-500">*</span></label
+                      ><input
+                        type="number"
+                        id="modal-product-stock"
+                        required
+                        class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label class="block text-sm font-bold text-[#111417] mb-1"
+                        >Trạng thái kho</label
+                      ><select
+                        id="modal-product-stock-status"
+                        class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                      >
+                        <option value="IN_STOCK">Còn hàng</option>
+                        <option value="OUT_OF_STOCK">Hết hàng</option>
+                        <option value="PRE_ORDER">Đặt trước</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-bold text-[#111417] mb-1"
+                      >Hiển thị / Ẩn</label
+                    ><select
+                      id="modal-product-is-active"
+                      class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                    >
+                      <option value="true">Đang hiển thị</option>
+                      <option value="false">Tạm ẩn</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white p-6 rounded-xl border border-[#e5e7eb] shadow-sm"
+            >
+              <h4
+                class="font-bold text-green-600 mb-4 flex items-center gap-2 border-b pb-2"
+              >
+                <span class="material-symbols-outlined">imagesmode</span>Hình
+                ảnh & Biến thể màu
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                  <div class="mb-4">
+                    <label class="block text-sm font-bold text-[#111417] mb-2"
+                      >Ảnh đại diện (Thumbnail)</label
+                    >
+                    <input
+                      type="file"
+                      id="upload-thumbnail"
+                      accept="image/*"
+                      class="text-sm w-full mb-2"
+                    />
+                    <img
+                      id="preview-thumbnail"
+                      class="w-24 h-24 object-cover rounded-lg border hidden"
+                    />
+                    <input type="hidden" id="modal-product-thumbnail-base64" />
+                  </div>
+                  <div>
+                    <label
+                      class="block text-sm font-bold text-[#111417] mb-2 flex justify-between items-center"
+                    >
+                      Ảnh chi tiết (Nhiều ảnh)
+                      <button
+                        type="button"
+                        onclick="addDetailImageRow()"
+                        class="text-xs bg-gray-100 px-2 py-1 rounded text-primary font-bold"
+                      >
+                        + Thêm ảnh
+                      </button>
+                    </label>
+                    <div id="detail-images-container" class="space-y-2"></div>
+                  </div>
+                </div>
+                <div>
+                  <label
+                    class="block text-sm font-bold text-[#111417] mb-2 flex justify-between items-center"
+                  >
+                    Biến thể màu sắc
+                    <button
+                      type="button"
+                      onclick="addColorRow()"
+                      class="text-xs bg-gray-100 px-2 py-1 rounded text-green-600 font-bold"
+                    >
+                      + Thêm màu
+                    </button>
+                  </label>
+                  <div id="colors-container" class="space-y-3"></div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white p-6 rounded-xl border border-[#e5e7eb] shadow-sm"
+            >
+              <h4
+                class="font-bold text-purple-600 mb-4 flex items-center gap-2 border-b pb-2"
+              >
+                <span class="material-symbols-outlined">memory</span>Thông số kỹ
+                thuật
+              </h4>
+              <p id="specs-guide" class="text-sm text-gray-500 italic mb-4">
+                Vui lòng chọn Danh mục ở phần Thông tin cơ bản để hiển thị bảng
+                thông số tương ứng.
+              </p>
+              <div
+                id="dynamic-specs-container"
+                class="grid grid-cols-1 md:grid-cols-2 gap-4"
+              ></div>
+            </div>
+          </form>
+        </div>
+
+        <div
+          class="px-6 py-4 border-t border-[#e5e7eb] flex justify-end gap-3 bg-white"
+        >
+          <button
+            onclick="closeProductModal()"
+            class="px-5 py-2.5 rounded-lg border border-[#e5e7eb] text-[#637588] hover:bg-gray-50 font-bold text-sm transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            id="btn-save-product"
+            onclick="saveProduct()"
+            class="px-5 py-2.5 rounded-lg bg-primary text-white font-bold text-sm hover:bg-blue-600 shadow-sm transition-colors flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-[18px]">save</span> Lưu
+            sản phẩm
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="js/common.js"></script>
+  <script src="js/product_management.js"></script>
+</html>

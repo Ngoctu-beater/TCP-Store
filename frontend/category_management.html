@@ -1,0 +1,238 @@
+<!doctype html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Quản lý danh mục</title>
+    <script>
+      // Lấy Role từ bộ nhớ trình duyệt
+      const userRole =
+        localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+      if (userRole !== "ADMIN" && userRole !== "ROLE_ADMIN") {
+        window.location.replace("home.html");
+      }
+    </script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1d7fe2",
+              "background-light": "#f6f7f8",
+              "background-dark": "#111921",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1a242f",
+            },
+            fontFamily: {
+              display: ["Manrope", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .filled {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-[#111417] overflow-hidden"
+  >
+    <div class="flex h-screen w-full">
+      <div id="admin-sidebar-placeholder" class="contents"></div>
+      <main
+        class="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light"
+      >
+        <div id="admin-header-placeholder" class="contents"></div>
+        <div class="flex-1 overflow-y-auto p-6">
+          <div class="max-w-[1400px] mx-auto flex flex-col gap-6">
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+            >
+              <div class="relative w-full sm:w-auto">
+                <span
+                  class="material-symbols-outlined absolute left-2.5 top-2 text-[#637588] text-[20px]"
+                  >search</span
+                >
+                <input
+                  id="search-category"
+                  class="h-9 pl-9 pr-4 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-full sm:w-80"
+                  placeholder="Tìm kiếm danh mục..."
+                  type="text"
+                />
+              </div>
+              <button
+                onclick="openCategoryModal()"
+                class="flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-blue-600 transition-colors shadow-sm"
+              >
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                Thêm danh mục mới
+              </button>
+            </div>
+
+            <div
+              class="bg-surface-light rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col overflow-hidden"
+            >
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead class="bg-[#f9fafb]">
+                    <tr>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Tên danh mục
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Số lượng sản phẩm
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Trạng thái
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Hành động
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="category-table-body"
+                    class="divide-y divide-[#e5e7eb]"
+                  ></tbody>
+                </table>
+              </div>
+              <div
+                class="p-4 border-t border-[#e5e7eb] flex items-center justify-between"
+              >
+                <span class="text-sm text-[#637588]">Đang tải dữ liệu...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div
+      id="category-modal"
+      class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center backdrop-blur-sm transition-opacity"
+    >
+      <div
+        class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden transform transition-all"
+      >
+        <div
+          class="px-6 py-4 border-b border-[#e5e7eb] flex justify-between items-center"
+        >
+          <h3 id="modal-title" class="text-xl font-bold text-[#111417]">
+            Thêm danh mục
+          </h3>
+          <button
+            onclick="closeCategoryModal()"
+            class="text-gray-400 hover:text-red-500 transition-colors"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="p-6 flex flex-col gap-5">
+          <input type="hidden" id="modal-cat-id" />
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-bold text-[#111417]">Tên danh mục</label>
+            <input
+              id="modal-cat-name"
+              type="text"
+              class="h-10 px-3 rounded-lg border border-[#e5e7eb] w-full focus:ring-primary focus:border-primary"
+            />
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-bold text-[#111417]"
+              >Danh mục cha (Tùy chọn)</label
+            >
+            <select
+              id="modal-cat-parent"
+              class="h-10 px-3 rounded-lg border border-[#e5e7eb] w-full focus:ring-primary focus:border-primary text-sm"
+            >
+              <option value="">-- Trống (Đây là danh mục gốc) --</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2 mt-2">
+            <input
+              id="modal-cat-featured"
+              type="checkbox"
+              class="size-5 rounded border-[#e5e7eb] text-primary focus:ring-primary cursor-pointer"
+            />
+            <label
+              class="text-sm font-bold text-[#111417] cursor-pointer"
+              for="modal-cat-featured"
+              >Đánh dấu là Danh mục nổi bật</label
+            >
+          </div>
+        </div>
+        <div
+          class="px-6 py-4 border-t border-[#e5e7eb] flex justify-end gap-3 bg-gray-50"
+        >
+          <button
+            onclick="closeCategoryModal()"
+            class="px-5 py-2 rounded-lg border border-[#e5e7eb] text-[#637588] bg-white hover:bg-gray-100 font-medium text-sm"
+          >
+            Hủy
+          </button>
+          <button
+            id="btn-save-category"
+            onclick="saveCategory()"
+            class="px-5 py-2 rounded-lg bg-primary text-white font-bold text-sm hover:bg-blue-600 shadow-sm"
+          >
+            Lưu danh mục
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/category_management.js"></script>
+  </body>
+</html>

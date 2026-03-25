@@ -1,0 +1,87 @@
+<aside
+  class="w-64 bg-surface-light border-r border-[#e5e7eb] flex-col hidden lg:flex h-full"
+>
+  <div class="h-16 flex items-center px-6 border-b border-[#f0f2f4]">
+    <div class="flex items-center gap-2 text-primary">
+      <div class="size-14 text-primary">
+        <img src="image/logo.png" alt="logo" />
+      </div>
+      <h1 class="text-xl font-bold tracking-tight text-[#111417]">TuComputer</h1>
+    </div>
+  </div>
+  <div class="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1">
+    <a
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary group"
+      href="dashboard.html"
+    >
+      <span class="material-symbols-outlined filled">dashboard</span>
+      <span class="text-sm font-semibold">Tổng quan</span>
+    </a>
+    <a
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#637588] hover:bg-[#f0f2f4] hover:text-[#111417] transition-colors group"
+      href="product_management.html"
+    >
+      <span class="material-symbols-outlined group-hover:text-[#111417]"
+        >inventory_2</span
+      >
+      <span class="text-sm font-medium">Quản lý sản phẩm</span>
+    </a>
+    <a
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#637588] hover:bg-[#f0f2f4] hover:text-[#111417] transition-colors group"
+      href="order_management.html"
+    >
+      <span class="material-symbols-outlined group-hover:text-[#111417]"
+        >shopping_cart</span
+      >
+      <span class="text-sm font-medium">Quản lý đơn hàng</span>
+    </a>
+    <a
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#637588] hover:bg-[#f0f2f4] hover:text-[#111417] transition-colors group"
+      href="category_management.html"
+    >
+      <span class="material-symbols-outlined group-hover:text-[#111417]"
+        >category</span
+      >
+      <span class="text-sm font-medium">Quản lý danh mục</span>
+    </a>
+    <a
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#637588] hover:bg-[#f0f2f4] hover:text-[#111417] transition-colors group"
+      href="customer_management.html"
+    >
+      <span class="material-symbols-outlined group-hover:text-[#111417]"
+        >group</span
+      >
+      <span class="text-sm font-medium">Quản lý khách hàng</span>
+    </a>
+    <a
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#637588] hover:bg-[#f0f2f4] hover:text-[#111417] transition-colors group"
+      href="statistical.html"
+    >
+      <span class="material-symbols-outlined group-hover:text-[#111417]"
+        >bar_chart</span
+      >
+      <span class="text-sm font-medium">Thống kê</span>
+    </a>
+    <div class="my-2 border-t border-[#f0f2f4]"></div>
+    <a
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#637588] hover:bg-[#f0f2f4] hover:text-[#111417] transition-colors group"
+      href="admin_infor.html"
+    >
+      <span class="material-symbols-outlined group-hover:text-[#111417]"
+        >settings</span
+      >
+      <span class="text-sm font-medium">Cài đặt</span>
+    </a>
+    <a
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors mt-auto"
+      href="#"
+      onclick="
+        AuthUtils.logout();
+        return false;
+      "
+    >
+      <span class="material-symbols-outlined">logout</span>
+      <span class="text-sm font-medium">Đăng xuất</span>
+    </a>
+  </div>
+</aside>

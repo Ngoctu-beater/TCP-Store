@@ -1,0 +1,514 @@
+<!doctype html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Chi tiết sản phẩm</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#00c7c7",
+              "background-light": "#ffffff",
+              "background-dark": "#17191c",
+              "sale-red": "#ef4444",
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Inter", "sans-serif"],
+              body: ["Inter", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style type="text/tailwindcss">
+      body {
+        font-family: "Inter", sans-serif;
+      }
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .hide-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .mega-menu-trigger:hover .mega-menu-content {
+        display: flex;
+      }
+      .category-item:hover .subcategory-panel {
+        display: block;
+      }
+      #spec-modal-toggle:checked ~ .spec-modal {
+        display: flex;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark text-[#101818] dark:text-white antialiased"
+  >
+    <div id="header-placeholder"></div>
+
+    <main
+      class="flex-1 w-full max-w-[1440px] mx-auto px-4 md:px-10 py-6 md:py-8 flex flex-col gap-8"
+    >
+      <nav
+        class="flex items-center text-sm font-medium text-gray-500 dark:text-gray-400"
+      >
+        <a class="hover:text-primary transition-colors" href="home.html"
+          >Trang chủ</a
+        >
+        <span class="mx-2 text-gray-300">/</span>
+        <a class="hover:text-primary transition-colors" href="products.html"
+          >Sản phẩm</a
+        >
+        <span class="mx-2 text-gray-300">/</span>
+        <a
+          class="hover:text-primary transition-colors"
+          href="#"
+          id="breadcrumb-category"
+          >...</a
+        >
+        <span class="mx-2 text-gray-300">/</span>
+        <span
+          class="text-gray-900 dark:text-white truncate max-w-[200px]"
+          id="breadcrumb-name"
+          >...</span
+        >
+      </nav>
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14">
+        <div class="lg:col-span-7 flex flex-col gap-6">
+          <div
+            class="relative w-full aspect-[4/3] md:aspect-[16/10] bg-white dark:bg-[#1e2125] rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden flex items-center justify-center p-8 group"
+          >
+            <img
+              id="main-image"
+              class="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo6BkOTJN8-Zd5Pqa5RDSSopfVdp_1UsXP_vzMpMmAj1T60jUHYAsmOzj8Pf47wlJJ6t-bqD0NLbj0DD6uvkT3Eefj92YeMyOKZd8-NmN4gDiapMm2pT9Y9u-A8K2CTlL2kOt9QJVQTic34J-ne0hb7ujCS1hGAqGhQDi7cYze8LFtIsDJSLZyerbrmcxvYPVSnPHlbV8PEmPoMaMmViP25Db95dbDDVNQHCsCE4MDrGCje2MU7Oonu6PO2m84GvUCFSlyt7ryWwM"
+            />
+            <div class="absolute top-4 left-4 z-10 flex flex-col gap-2">
+              <span
+                id="p-discount-badge"
+                class="bg-sale-red text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm"
+                >-0%</span
+              >
+            </div>
+          </div>
+          <div
+            id="gallery-list"
+            class="flex gap-4 overflow-x-auto hide-scrollbar pb-2"
+          >
+            <button
+              class="shrink-0 size-20 md:size-24 rounded-lg border-2 border-primary p-2 bg-white dark:bg-[#1e2125] cursor-pointer"
+            >
+              <img
+                class="w-full h-full object-contain"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo6BkOTJN8-Zd5Pqa5RDSSopfVdp_1UsXP_vzMpMmAj1T60jUHYAsmOzj8Pf47wlJJ6t-bqD0NLbj0DD6uvkT3Eefj92YeMyOKZd8-NmN4gDiapMm2pT9Y9u-A8K2CTlL2kOt9QJVQTic34J-ne0hb7ujCS1hGAqGhQDi7cYze8LFtIsDJSLZyerbrmcxvYPVSnPHlbV8PEmPoMaMmViP25Db95dbDDVNQHCsCE4MDrGCje2MU7Oonu6PO2m84GvUCFSlyt7ryWwM"
+              />
+            </button>
+            <button
+              class="shrink-0 size-20 md:size-24 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary p-2 bg-white dark:bg-[#1e2125] cursor-pointer transition-colors opacity-60 hover:opacity-100"
+            >
+              <img
+                class="w-full h-full object-contain"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo6BkOTJN8-Zd5Pqa5RDSSopfVdp_1UsXP_vzMpMmAj1T60jUHYAsmOzj8Pf47wlJJ6t-bqD0NLbj0DD6uvkT3Eefj92YeMyOKZd8-NmN4gDiapMm2pT9Y9u-A8K2CTlL2kOt9QJVQTic34J-ne0hb7ujCS1hGAqGhQDi7cYze8LFtIsDJSLZyerbrmcxvYPVSnPHlbV8PEmPoMaMmViP25Db95dbDDVNQHCsCE4MDrGCje2MU7Oonu6PO2m84GvUCFSlyt7ryWwM"
+              />
+            </button>
+            <button
+              class="shrink-0 size-20 md:size-24 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary p-2 bg-white dark:bg-[#1e2125] cursor-pointer transition-colors opacity-60 hover:opacity-100"
+            >
+              <img
+                class="w-full h-full object-contain"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDo6BkOTJN8-Zd5Pqa5RDSSopfVdp_1UsXP_vzMpMmAj1T60jUHYAsmOzj8Pf47wlJJ6t-bqD0NLbj0DD6uvkT3Eefj92YeMyOKZd8-NmN4gDiapMm2pT9Y9u-A8K2CTlL2kOt9QJVQTic34J-ne0hb7ujCS1hGAqGhQDi7cYze8LFtIsDJSLZyerbrmcxvYPVSnPHlbV8PEmPoMaMmViP25Db95dbDDVNQHCsCE4MDrGCje2MU7Oonu6PO2m84GvUCFSlyt7ryWwM"
+              />
+            </button>
+            <button
+              class="shrink-0 size-20 md:size-24 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-primary p-2 bg-white dark:bg-[#1e2125] cursor-pointer transition-colors opacity-60 hover:opacity-100"
+            >
+              <div
+                class="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-800 rounded"
+              >
+                <span class="material-symbols-outlined text-gray-400"
+                  >play_circle</span
+                >
+              </div>
+            </button>
+          </div>
+        </div>
+        <div class="lg:col-span-5 flex flex-col h-full">
+          <div class="flex flex-col gap-6 sticky top-24">
+            <div
+              class="flex flex-col gap-3 border-b border-gray-100 dark:border-gray-800 pb-6"
+            >
+              <div class="flex items-center gap-2">
+                <span
+                  class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded"
+                  >SKU: <span id="p-sku">...</span></span
+                >
+                <span
+                  class="text-xs font-medium text-gray-500 dark:text-gray-400"
+                  >Thương hiệu:
+                  <a class="text-primary hover:underline" href="#" id="p-brand"
+                    >...</a
+                  ></span
+                >
+              </div>
+              <h1
+                id="p-name"
+                class="text-2xl md:text-3xl font-extrabold text-[#101818] dark:text-white leading-tight"
+              >
+                Đang tải...
+              </h1>
+              <div class="flex items-center gap-3 mt-1">
+                <div
+                  class="flex items-center gap-1 bg-yellow-400/10 px-2 py-1 rounded-md"
+                >
+                  <span
+                    class="text-sm font-bold text-yellow-600 dark:text-yellow-500"
+                    >4.5</span
+                  >
+                  <span
+                    class="material-symbols-outlined text-[16px] filled text-yellow-400"
+                    >star</span
+                  >
+                </div>
+                <span class="text-sm text-gray-400">|</span>
+                <a
+                  class="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+                  href="#reviews"
+                >
+                  42 đánh giá
+                </a>
+                <span class="text-sm text-gray-400">|</span>
+                <span
+                  id="p-sold"
+                  class="text-sm text-gray-500 dark:text-gray-400"
+                  >Đã bán 0</span
+                >
+              </div>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="flex items-end gap-3 flex-wrap">
+                <span
+                  id="p-sale-price"
+                  class="text-3xl md:text-4xl font-black text-sale-red tracking-tight"
+                  >0 ₫</span
+                >
+                <span
+                  id="p-base-price"
+                  class="text-lg text-gray-400 line-through mb-1.5 font-medium"
+                  >0 ₫</span
+                >
+              </div>
+              <p
+                class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1"
+              >
+                <span class="material-symbols-outlined text-sm text-green-500"
+                  >check_circle</span
+                >
+                Giá đã bao gồm VAT
+              </p>
+            </div>
+            <div id="color-section" class="flex flex-col gap-3 hidden">
+              <span class="text-sm font-bold text-gray-700 dark:text-gray-200"
+                >Màu sắc:
+                <span class="text-primary" id="selected-color-name"
+                  >...</span
+                ></span
+              >
+              <div
+                id="color-options-container"
+                class="flex items-center gap-4 flex-wrap"
+              ></div>
+            </div>
+            <div
+              class="rounded-xl border border-primary/30 bg-[#f0f5f5] dark:bg-[#1e2125] dark:border-gray-700 overflow-hidden"
+            >
+              <div
+                class="bg-gradient-to-r from-primary/20 to-transparent px-4 py-3 flex items-center gap-2 border-b border-primary/10"
+              >
+                <span class="material-symbols-outlined text-primary text-xl"
+                  >redeem</span
+                >
+                <h3 class="font-bold text-[#101818] dark:text-white">
+                  Khuyến mãi đặc biệt
+                </h3>
+              </div>
+              <div class="p-4">
+                <ul class="flex flex-col gap-3">
+                  <li
+                    class="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300"
+                  >
+                    <span
+                      class="size-5 shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold mt-0.5"
+                      >1</span
+                    >
+                    <span
+                      >Tặng Balo Laptop Dell chính hãng trị giá
+                      <strong>500.000đ</strong></span
+                    >
+                  </li>
+                  <li
+                    class="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300"
+                  >
+                    <span
+                      class="size-5 shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold mt-0.5"
+                      >2</span
+                    >
+                    <span
+                      >Giảm thêm <strong>300.000đ</strong> khi thanh toán qua
+                      VNPAY-QR</span
+                    >
+                  </li>
+                  <li
+                    class="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300"
+                  >
+                    <span
+                      class="size-5 shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold mt-0.5"
+                      >3</span
+                    >
+                    <span>Tặng gói cài đặt phần mềm trọn đời máy</span>
+                  </li>
+                  <li
+                    class="flex items-start gap-3 text-sm text-gray-700 dark:text-gray-300"
+                  >
+                    <span
+                      class="size-5 shrink-0 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[10px] font-bold mt-0.5"
+                      >4</span
+                    >
+                    <span>Hỗ trợ trả góp 0% lãi suất</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="flex flex-col gap-3 pt-2">
+              <div class="flex gap-3 h-14">
+                <button
+                  id="btn-buy-now"
+                  class="flex-1 bg-primary hover:bg-primary/90 text-[#101818] rounded-xl font-bold text-lg shadow-lg shadow-primary/20 transition-all flex flex-col items-center justify-center"
+                >
+                  <span>Mua Ngay</span>
+                  <span class="text-[10px] font-normal opacity-80"
+                    >Giao hàng tận nơi hoặc nhận tại cửa hàng</span
+                  >
+                </button>
+                <button
+                  id="btn-add-cart"
+                  class="px-4 rounded-xl border-2 border-primary text-primary hover:bg-primary hover:text-[#101818] font-bold transition-all flex flex-col items-center justify-center gap-1 group"
+                >
+                  <span
+                    class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform"
+                    >add_shopping_cart</span
+                  >
+                  <span class="text-[10px]">Thêm vào giỏ</span>
+                </button>
+              </div>
+              <p
+                class="text-center text-xs text-gray-500 dark:text-gray-400 mt-2"
+              >
+                Gọi <strong class="text-primary">1900 1234</strong> để được tư
+                vấn miễn phí (7:30 - 22:00)
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="border-t border-gray-100 dark:border-gray-800 pt-10 mt-6">
+        <h2
+          class="text-2xl font-bold mb-8 text-center text-[#101818] dark:text-white"
+        >
+          Thông số kỹ thuật tóm tắt
+        </h2>
+        <div
+          class="w-full max-w-4xl mx-auto rounded-xl overflow-hidden bg-white dark:bg-[#1e2125] shadow-sm ring-1 ring-gray-100 dark:ring-gray-800"
+        >
+          <div id="specs-summary-list" class="flex flex-col text-sm">
+            <div
+              class="grid grid-cols-12 gap-4 py-4 px-6 items-center bg-gray-50/50 dark:bg-[#25282c]/40"
+            >
+              <span
+                class="col-span-4 md:col-span-3 text-gray-500 dark:text-gray-400 font-normal"
+                >CPU</span
+              >
+              <span
+                class="col-span-8 md:col-span-9 font-bold text-[#101818] dark:text-white text-base"
+                >Intel Core i7-13700H</span
+              >
+            </div>
+            <div
+              class="grid grid-cols-12 gap-4 py-4 px-6 items-center bg-white dark:bg-[#1e2125]"
+            >
+              <span
+                class="col-span-4 md:col-span-3 text-gray-500 dark:text-gray-400 font-normal"
+                >RAM</span
+              >
+              <span
+                class="col-span-8 md:col-span-9 font-bold text-[#101818] dark:text-white text-base"
+                >16GB DDR5 4800MHz</span
+              >
+            </div>
+            <div
+              class="grid grid-cols-12 gap-4 py-4 px-6 items-center bg-gray-50/50 dark:bg-[#25282c]/40"
+            >
+              <span
+                class="col-span-4 md:col-span-3 text-gray-500 dark:text-gray-400 font-normal"
+                >Ổ cứng</span
+              >
+              <span
+                class="col-span-8 md:col-span-9 font-bold text-[#101818] dark:text-white text-base"
+                >512GB M.2 PCIe NVMe SSD</span
+              >
+            </div>
+            <div
+              class="grid grid-cols-12 gap-4 py-4 px-6 items-center bg-white dark:bg-[#1e2125]"
+            >
+              <span
+                class="col-span-4 md:col-span-3 text-gray-500 dark:text-gray-400 font-normal"
+                >Màn hình</span
+              >
+              <span
+                class="col-span-8 md:col-span-9 font-bold text-[#101818] dark:text-white text-base"
+                >15.6" FHD+ (1920 x 1200)</span
+              >
+            </div>
+            <div
+              class="grid grid-cols-12 gap-4 py-4 px-6 items-center bg-gray-50/50 dark:bg-[#25282c]/40"
+            >
+              <span
+                class="col-span-4 md:col-span-3 text-gray-500 dark:text-gray-400 font-normal"
+                >VGA</span
+              >
+              <span
+                class="col-span-8 md:col-span-9 font-bold text-[#101818] dark:text-white text-base"
+                >Intel Arc A370M Graphics</span
+              >
+            </div>
+            <div
+              class="grid grid-cols-12 gap-4 py-4 px-6 items-center bg-white dark:bg-[#1e2125]"
+            >
+              <span
+                class="col-span-4 md:col-span-3 text-gray-500 dark:text-gray-400 font-normal"
+                >Pin</span
+              >
+              <span
+                class="col-span-8 md:col-span-9 font-bold text-[#101818] dark:text-white text-base"
+                >6 Cell - 86Wh</span
+              >
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-center mt-8">
+          <label
+            class="flex items-center justify-center gap-2 w-full max-w-2xl px-8 py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#25282c] text-sm font-bold text-[#101818] dark:text-white hover:border-primary hover:text-primary hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer group shadow-sm"
+            for="spec-modal-toggle"
+          >
+            <span>Xem tất cả thông số kỹ thuật</span>
+            <span
+              class="material-symbols-outlined text-lg group-hover:translate-y-0.5 transition-transform"
+              >keyboard_arrow_down</span
+            >
+          </label>
+        </div>
+      </section>
+      <section
+        class="border-t border-gray-100 dark:border-gray-800 pt-10 mt-6"
+        id="reviews"
+      >
+        <div class="w-full max-w-4xl mx-auto">
+          <h2 class="text-2xl font-bold mb-8 text-[#101818] dark:text-white">
+            Đánh giá từ người dùng
+          </h2>
+
+          <div
+            id="review-stats-container"
+            class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-10"
+          >
+            <div class="text-center text-gray-500 py-8 col-span-3">
+              Đang tải thống kê...
+            </div>
+          </div>
+
+          <div id="reviews-list-container" class="flex flex-col gap-6">
+            <div class="text-center text-gray-500 py-8">
+              Đang tải đánh giá...
+            </div>
+          </div>
+
+          <div id="load-more-container" class="flex justify-center mt-6 hidden">
+            <button
+              id="btn-load-more"
+              class="px-6 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#25282c] transition-colors"
+            >
+              Xem thêm đánh giá
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <input class="hidden peer" id="spec-modal-toggle" type="checkbox" />
+    <div
+      class="spec-modal fixed inset-0 z-[100] hidden items-center justify-center p-4"
+    >
+      <label
+        class="absolute inset-0 bg-black/60 backdrop-blur-md transition-opacity"
+        for="spec-modal-toggle"
+      ></label>
+      <div
+        class="relative bg-white dark:bg-[#1e2125] w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200 ring-1 ring-gray-200 dark:ring-gray-700"
+      >
+        <div
+          class="flex items-center justify-between px-6 py-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1e2125] sticky top-0 z-10"
+        >
+          <h3
+            class="text-xl font-bold text-[#101818] dark:text-white flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-primary"
+              >settings_suggest</span
+            >
+            Thông số kỹ thuật chi tiết
+          </h3>
+          <label
+            class="size-9 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-sale-red hover:text-white cursor-pointer transition-all text-gray-500"
+            for="spec-modal-toggle"
+          >
+            <span class="material-symbols-outlined text-xl">close</span>
+          </label>
+        </div>
+        <div
+          class="overflow-y-auto p-0 scroll-smooth bg-gray-50 dark:bg-[#17191c]"
+        >
+          <div class="p-6 md:p-8 flex flex-col gap-8">
+            <div
+              id="specs-detail-list"
+              class="bg-white dark:bg-[#1e2125] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer-placeholder"></div>
+  </body>
+  
+  <script src="js/common.js"></script>
+  <script src="js/product_detail.js"></script>
+</html>
