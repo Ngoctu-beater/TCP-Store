@@ -341,7 +341,7 @@ async function addToCart(productId, buyNow) {
     if (response.ok) {
       // Thành công
       if (buyNow) {
-        window.location.href = "cart.html";
+        window.location.href = "shopping_cart.html";
       } else {
         alert("Đã thêm sản phẩm vào giỏ hàng!");
 

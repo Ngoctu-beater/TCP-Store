@@ -34,6 +34,8 @@ public class CategoryController {
             Map<String, Object> response = new HashMap<>();
             response.put("id", category.getId());
             response.put("name", category.getName());
+            String effectiveConfig = categoryService.getEffectiveDisplayConfig(category);
+            response.put("displayConfig", effectiveConfig);
 
             if (category.getParent() != null) {
                 Map<String, Object> parentMap = new HashMap<>();

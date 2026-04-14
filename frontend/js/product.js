@@ -1,25 +1,43 @@
+// Biến toàn cục
 let currentPage = 0;
 let currentCategoryId = null;
 let currentKeyword = null;
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 32;
 let currentSortBy = "createdAt";
 let currentSortDir = "desc";
 
-document.addEventListener("DOMContentLoaded", () => {
+// Lưu trạng thái bộ lọc
+let activeFilters = {};
+let currentMinPrice = null;
+let currentMaxPrice = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
   currentCategoryId = urlParams.get("category") || urlParams.get("categoryId");
   currentKeyword = urlParams.get("search");
 
+  // Xử lý sự kiện thay đổi sắp xếp
   const sortSelect = document.getElementById("sort");
   if (sortSelect) {
     sortSelect.addEventListener("change", function () {
       const [sortBy, sortDir] = this.value.split("-");
       currentSortBy = sortBy;
       currentSortDir = sortDir;
-
       loadProducts(0);
     });
   }
+
+  if (currentCategoryId) {
+    await initDynamicFilters(currentCategoryId);
+  } else {
+    // Nếu không có categoryId trên URL -> Xóa chữ "Đang tải" và thông báo
+    const container = document.getElementById("dynamic-specs-container");
+    if(container) {
+        container.innerHTML = `<div class="text-sm text-gray-400 italic">Vui lòng chọn một danh mục cụ thể!</div>`;
+    }
+  }
+
+  // Tải dữ liệu lần đầu
   if (currentKeyword !== null) {
     loadProducts(0);
   } else if (currentCategoryId) {
@@ -29,6 +47,101 @@ document.addEventListener("DOMContentLoaded", () => {
     loadProducts(0);
   }
 });
+
+// Khởi tạo cấu hình và vẽ nút lọc
+async function initDynamicFilters(categoryId) {
+    const container = document.getElementById("dynamic-specs-container");
+    if (!container) return;
+
+    try {
+        // Lấy toàn bộ giao diện từ API siêu tốc vừa làm
+        const filterResponse = await fetch(`${AppConfig.PRODUCT_API_URL}/products/category/${categoryId}/filters`);
+        if (!filterResponse.ok) return;
+        
+        const filterData = await filterResponse.json();
+        
+        const labels = filterData.labels || {};
+        const filters = filterData.filters || {};
+
+        let htmlParts = Object.keys(filters).map(key => {
+            const labelName = labels[key] || key.toUpperCase();
+            const options = filters[key] || [];
+            
+            if (options.length === 0) return '';
+
+            return `
+            <div class="filter-group mb-5">
+                <h4 class="text-sm font-bold mb-3 text-gray-800 dark:text-gray-200">${labelName}</h4>
+                <div class="flex flex-wrap gap-2">
+                    ${options.map(opt => {
+                        const cleanOpt = String(opt).replace(/^"|"$/g, '');
+                        const safeVal = cleanOpt.replace(/'/g, "\\'");
+                        
+                        return `
+                        <button class="filter-chip px-3 py-1.5 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 hover:border-primary hover:text-primary transition-colors" 
+                                data-key="${key}" data-val="${cleanOpt}"
+                                onclick="toggleFilter('${key}', '${safeVal}', this)">
+                            ${cleanOpt}
+                        </button>`
+                    }).join('')}
+                </div>
+            </div>`;
+        });
+
+        const finalHtml = htmlParts.join('').trim();
+        container.innerHTML = finalHtml === '' 
+            ? `<div class="text-sm text-gray-400">Hiện chưa có thông số để lọc.</div>` 
+            : finalHtml;
+
+    } catch (e) { 
+        console.error("LỖI BỘ LỌC:", e); 
+    }
+}
+
+// Click chọn/bỏ chọn một thông số
+function toggleFilter(key, value, element) {
+  if (activeFilters[key] === value) {
+    delete activeFilters[key]; // Bỏ chọn
+    element.classList.remove("bg-primary", "text-[#101818]", "border-primary");
+    element.classList.add("text-gray-600", "dark:text-gray-400");
+  } else {
+    // Bỏ active nút cũ cùng nhóm
+    element.parentNode.querySelectorAll("button").forEach((btn) => {
+      btn.classList.remove("bg-primary", "text-[#101818]", "border-primary");
+      btn.classList.add("text-gray-600", "dark:text-gray-400");
+    });
+    // Active nút mới
+    activeFilters[key] = value;
+    element.classList.remove("text-gray-600", "dark:text-gray-400");
+    element.classList.add("bg-primary", "text-[#101818]", "border-primary");
+  }
+  loadProducts(0);
+}
+
+// Nút áp dụng giá
+function applyFilters() {
+  currentMinPrice = document.getElementById("min-price").value || null;
+  currentMaxPrice = document.getElementById("max-price").value || null;
+  loadProducts(0);
+}
+
+// Xóa toàn bộ lọc
+function resetFilters() {
+  const minPriceEl = document.getElementById("min-price");
+  const maxPriceEl = document.getElementById("max-price");
+  if (minPriceEl) minPriceEl.value = "";
+  if (maxPriceEl) maxPriceEl.value = "";
+
+  currentMinPrice = null;
+  currentMaxPrice = null;
+  activeFilters = {};
+
+  document.querySelectorAll(".filter-chip").forEach((btn) => {
+    btn.classList.remove("bg-primary", "text-[#101818]", "border-primary");
+    btn.classList.add("text-gray-600", "dark:text-gray-400");
+  });
+  loadProducts(0);
+}
 
 async function loadProducts(page) {
   currentPage = page;
@@ -42,19 +155,24 @@ async function loadProducts(page) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 
   try {
-    let apiUrl = "";
     let pageTitle = "Tất cả sản phẩm";
     let breadcrumbPaths = [];
 
-    if (currentKeyword !== null) {
-      apiUrl = `${AppConfig.PRODUCT_API_URL}/products/search?keyword=${encodeURIComponent(currentKeyword)}&page=${page}&limit=${PAGE_SIZE}&sortBy=${currentSortBy}&sortDir=${currentSortDir}`;
+    // Gộp tất cả URL gọi về API /search để hỗ trợ filter đa tham số
+    let apiUrl = `${AppConfig.PRODUCT_API_URL}/products/search?page=${page}&limit=${PAGE_SIZE}&sortBy=${currentSortBy}&sortDir=${currentSortDir}`;
 
-      pageTitle = currentKeyword
-        ? `Kết quả tìm kiếm cho: "${currentKeyword}"`
-        : "Tất cả sản phẩm";
+    // Tham số Tìm kiếm
+    if (currentKeyword !== null && currentKeyword !== "") {
+      apiUrl += `&keyword=${encodeURIComponent(currentKeyword)}`;
+      pageTitle = `Kết quả tìm kiếm cho: "${currentKeyword}"`;
       breadcrumbPaths.push({ label: "Tìm kiếm sản phẩm" });
-    } else if (currentCategoryId) {
-      apiUrl = `${AppConfig.PRODUCT_API_URL}/products/category/${currentCategoryId}?page=${page}&limit=${PAGE_SIZE}&sortBy=${currentSortBy}&sortDir=${currentSortDir}`;
+    }
+
+    // Tham số Danh mục
+    if (currentCategoryId) {
+      apiUrl += `&categoryId=${currentCategoryId}`;
+
+      // Tải tên danh mục để vẽ Breadcrumb
       try {
         const catResponse = await fetch(
           `${AppConfig.PRODUCT_API_URL}/categories/${currentCategoryId}`,
@@ -62,7 +180,8 @@ async function loadProducts(page) {
         if (catResponse.ok) {
           const catData = await catResponse.json();
           const category = catData.data || catData;
-          pageTitle = category.name || category.categoryName || pageTitle;
+          if (!currentKeyword)
+            pageTitle = category.name || category.categoryName || pageTitle;
 
           if (category.parent) {
             breadcrumbPaths.push({
@@ -74,21 +193,37 @@ async function loadProducts(page) {
       } catch (e) {
         console.warn("Không tải được thông tin danh mục:", e);
       }
+      if (!currentKeyword) breadcrumbPaths.push({ label: pageTitle });
+    } else if (!currentKeyword) {
       breadcrumbPaths.push({ label: pageTitle });
     }
 
+    // Tham số Bộ lọc
+    let brandParam = activeFilters['brand'] || null;
+    let specsObj = { ...activeFilters };
+    delete specsObj["brand"];
+    let specsParam =
+      Object.keys(specsObj).length > 0 ? JSON.stringify(specsObj) : null;
+
+    if (currentMinPrice) apiUrl += `&minPrice=${currentMinPrice}`;
+    if (currentMaxPrice) apiUrl += `&maxPrice=${currentMaxPrice}`;
+    if (brandParam) apiUrl += `&brand=${encodeURIComponent(brandParam)}`;
+    if (specsParam) apiUrl += `&specs=${encodeURIComponent(specsParam)}`;
+
+    // Vẽ giao diện Breadcrumb & Tiêu đề
     if (typeof UIUtils !== "undefined" && UIUtils.renderBreadcrumb) {
       UIUtils.renderBreadcrumb("breadcrumb-container", breadcrumbPaths);
     }
     if (titleEl) titleEl.innerText = pageTitle;
 
+    // GỌI API
     const response = await fetch(apiUrl);
-
     if (!response.ok) throw new Error("Lỗi kết nối server");
 
     const data = await response.json();
     const products = data.content;
 
+    // Xử lý hiển thị UI
     if (productListEl) {
       productListEl.innerHTML = "";
       productListEl.classList.remove("hidden");

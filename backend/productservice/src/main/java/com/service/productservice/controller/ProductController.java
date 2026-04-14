@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -113,12 +115,23 @@ public class ProductController {
 
     @GetMapping("/search")
     public ResponseEntity<ProductPageResponse> searchPublicProducts(
-            @RequestParam(value = "keyword", defaultValue = "") String keyword,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "categoryId", required = false) Integer categoryId,
+            @RequestParam(value = "minPrice", required = false) BigDecimal minPrice,
+            @RequestParam(value = "maxPrice", required = false) BigDecimal maxPrice,
+            @RequestParam(value = "brand", required = false) String brand, // Tham số lọc bảng Brand
+            @RequestParam(value = "specs", defaultValue = "{}") String specs,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "limit", defaultValue = "12") int limit,
             @RequestParam(value = "sortBy", defaultValue = "createdAt") String sortBy,
             @RequestParam(value = "sortDir", defaultValue = "desc") String sortDir
     ) {
-        return ResponseEntity.ok(productService.searchPublicProducts(keyword, page, limit, sortBy, sortDir));
+        return ResponseEntity.ok(productService.searchPublicProducts(keyword, categoryId, minPrice, maxPrice, brand, specs, page, limit, sortBy, sortDir));
+    }
+
+    // Thêm Endpoint mới để lấy lựa chọn cấu hình
+    @GetMapping("/category/{categoryId}/filters")
+    public ResponseEntity<Map<String, Object>> getCategoryFilters(@PathVariable("categoryId") Integer categoryId) {
+        return ResponseEntity.ok(productService.getFilterOptions(categoryId));
     }
 }

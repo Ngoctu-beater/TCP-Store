@@ -128,4 +128,23 @@ public class CategoryService {
         }
         categoryRepository.deleteById(id);
     }
+
+    /**
+     * Tìm cấu hình hiển thị.
+     * Nếu danh mục hiện tại không có, sẽ tìm ở danh mục cha.
+     */
+    public String getEffectiveDisplayConfig(Category category) {
+        // Nếu danh mục hiện tại có cấu hình
+        if (category.getDisplayConfig() != null && !category.getDisplayConfig().trim().isEmpty()) {
+            return category.getDisplayConfig();
+        }
+
+        // Nếu không có cấu hình và có danh mục cha, tìm tiếp ở cha
+        if (category.getParent() != null) {
+            return getEffectiveDisplayConfig(category.getParent());
+        }
+
+        // Nếu tìm hết cấp mà vẫn không thấy thì trả về null
+        return null;
+    }
 }

@@ -14,18 +14,9 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
-    // Tìm sản phẩm theo danh mục
-    List<Product> findByCategory_Id(Integer categoryId);
-
     List<Product> findByCategory_IdIn(List<Integer> categoryIds);
 
     Page<Product> findByCategory_IdIn(List<Integer> categoryIds, Pageable pageable);
-
-    // Tìm sản phẩm theo SKU
-    boolean existsBySku(String sku);
-
-    // Tìm kiếm cơ bản theo tên
-    List<Product> findByNameContainingIgnoreCase(String name);
 
     @Modifying
     @Query("UPDATE Product p SET p.stock = p.stock - :quantity WHERE p.id = :productId AND p.stock >= :quantity")
@@ -39,7 +30,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("UPDATE Product p SET p.sold = COALESCE(p.sold, 0) + :quantity WHERE p.id = :productId")
     void increaseSold(@Param("productId") Integer productId, @Param("quantity") Integer quantity);
 
-    int countByCategory_Id(Integer categoryId);
     int countByCategory_IdIn(List<Integer> categoryIds);
 
     @Query(value = "SELECT p FROM Product p WHERE " +
@@ -55,5 +45,4 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
                                          @Param("categoryIds") List<Integer> categoryIds,
                                          @Param("status") StockStatus status,
                                          Pageable pageable);
-    Page<Product> findByNameContainingIgnoreCaseAndIsActiveTrue(String name, Pageable pageable);
 }

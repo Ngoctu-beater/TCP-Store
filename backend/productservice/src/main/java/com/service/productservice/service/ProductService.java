@@ -7,6 +7,9 @@ import com.service.productservice.dto.*;
 import com.service.productservice.model.*;
 import com.service.productservice.repository.CategoryRepository;
 import com.service.productservice.repository.ProductRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +28,10 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ObjectMapper objectMapper;
+    private final CategoryService categoryService;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     // --- LẤY CHI TIẾT SẢN PHẨM THEO ID ---
     @Transactional(readOnly = true)
@@ -355,26 +362,164 @@ public class ProductService {
         ).collect(Collectors.toList());
     }
 
+    // OPTIONS BỘ LỌC
+    public Map<String, Object> getFilterOptions(Integer categoryId) {
+        Category category = categoryRepository.findById(categoryId).orElse(null);
+        if (category == null) return Collections.emptyMap();
+
+        String configStr = categoryService.getEffectiveDisplayConfig(category);
+        if (configStr == null) return Collections.emptyMap();
+
+        try {
+            Map<String, Object> config = objectMapper.readValue(configStr, new TypeReference<Map<String, Object>>() {});
+
+            // 1. Lấy danh sách options đã định nghĩa cứng trong Database
+            Map<String, Object> predefinedOptions = (Map<String, Object>) config.get("filter");
+            if (predefinedOptions == null) predefinedOptions = new LinkedHashMap<>();
+
+            // 2. Lọc riêng danh sách Thương Hiệu (Brand) từ các sản phẩm thực tế trong kho
+            List<Integer> allCategoryIds = getAllDescendantIds(categoryId);
+            List<Product> products = productRepository.findByCategory_IdIn(allCategoryIds);
+
+            Set<String> brandNames = new HashSet<>();
+            for (Product p : products) {
+                if (p.getBrand() != null) {
+                    brandNames.add(p.getBrand().getName());
+                }
+            }
+
+            // Nhét Brand vào chung với các options khác
+            predefinedOptions.put("brand", new ArrayList<>(brandNames));
+
+            // 3. Đóng gói cả Nhãn (labels) và Nút bấm (options) trả về 1 cục cho JS dễ vẽ
+            Map<String, Object> response = new HashMap<>();
+            response.put("labels", config.get("labels"));
+            response.put("filters", predefinedOptions);
+
+            return response;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyMap();
+        }
+    }
+
+    // TÌM KIẾM SẢN PHẨM
     @Transactional(readOnly = true)
-    public ProductPageResponse searchPublicProducts(String keyword, int page, int size, String sortBy, String sortDir) {
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
+    public ProductPageResponse searchPublicProducts(String keyword, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice, String brandName, String specs, int page, int size, String sortBy, String sortDir) {
 
-        Page<Product> productPage = productRepository.findByNameContainingIgnoreCaseAndIsActiveTrue(keyword, pageable);
+        // SQL lấy data và tổng số trang
+        StringBuilder sql = new StringBuilder("SELECT p.* FROM products p LEFT JOIN brands b ON p.brand_id = b.id WHERE p.is_active = true");
+        StringBuilder countSql = new StringBuilder("SELECT COUNT(*) FROM products p LEFT JOIN brands b ON p.brand_id = b.id WHERE p.is_active = true");
 
-        List<ProductResponse> content = productPage.getContent().stream()
+        Map<String, Object> params = new HashMap<>();
+
+        // Xử lý Từ khóa
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND LOWER(p.name) LIKE LOWER(:keyword)");
+            countSql.append(" AND LOWER(p.name) LIKE LOWER(:keyword)");
+            params.put("keyword", "%" + keyword + "%");
+        }
+
+        // Xử lý Danh mục
+        if (categoryId != null) {
+            List<Integer> categoryIds = getAllDescendantIds(categoryId);
+            sql.append(" AND p.category_id IN (:categoryIds)");
+            countSql.append(" AND p.category_id IN (:categoryIds)");
+            params.put("categoryIds", categoryIds);
+        }
+
+        // Xử lý Thương hiệu
+        if (brandName != null && !brandName.trim().isEmpty()) {
+            sql.append(" AND b.name = :brandName");
+            countSql.append(" AND b.name = :brandName");
+            params.put("brandName", brandName);
+        }
+
+        // Xử lý Giá
+        if (minPrice != null) {
+            sql.append(" AND p.sale_price >= :minPrice");
+            countSql.append(" AND p.sale_price >= :minPrice");
+            params.put("minPrice", minPrice);
+        }
+        if (maxPrice != null) {
+            sql.append(" AND p.sale_price <= :maxPrice");
+            countSql.append(" AND p.sale_price <= :maxPrice");
+            params.put("maxPrice", maxPrice);
+        }
+
+        // ========================================================
+        // ĐÃ SỬA: LỌC CHÍNH XÁC VÀO TỪNG KEY TRONG JSON (VÀ XỬ LÝ CARD ONBOARD)
+        // ========================================================
+        if (specs != null && !specs.trim().isEmpty() && !specs.equals("{}")) {
+            try {
+                Map<String, String> specMap = objectMapper.readValue(specs, new TypeReference<Map<String, String>>() {});
+                int i = 0;
+                for (Map.Entry<String, String> entry : specMap.entrySet()) {
+                    // Dọn dẹp key để tránh lỗi cú pháp SQL và SQL Injection
+                    String safeKey = entry.getKey().replaceAll("[^a-zA-Z0-9_]", "");
+                    String val = entry.getValue();
+                    String paramName = "specVal" + i;
+
+                    if (val.equalsIgnoreCase("Card Onboard")) {
+                        // Nếu bấm nút Card Onboard thì tìm các từ khóa tương đương trong đúng trường GPU đó
+                        sql.append(" AND (LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%intel%' ")
+                                .append(" OR LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%uhd%' ")
+                                .append(" OR LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%iris%' ")
+                                .append(" OR LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%radeon graphics%')");
+
+                        countSql.append(" AND (LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%intel%' ")
+                                .append(" OR LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%uhd%' ")
+                                .append(" OR LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%iris%' ")
+                                .append(" OR LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%radeon graphics%')");
+                    } else {
+                        // Tìm chính xác giá trị vào đúng cái Key được chọn (Chống lọc RAM 8GB ra Card 8GB)
+                        sql.append(" AND LOWER(p.specs->>'$.").append(safeKey).append("') LIKE LOWER(:").append(paramName).append(")");
+                        countSql.append(" AND LOWER(p.specs->>'$.").append(safeKey).append("') LIKE LOWER(:").append(paramName).append(")");
+                        params.put(paramName, "%" + val + "%");
+                    }
+                    i++;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Xử lý Sắp xếp
+        String dbSortBy = "salePrice".equalsIgnoreCase(sortBy) ? "p.sale_price" : "p.created_at";
+        String dir = sortDir.equalsIgnoreCase("ASC") ? "ASC" : "DESC";
+        sql.append(" ORDER BY ").append(dbSortBy).append(" ").append(dir);
+
+        Query query = entityManager.createNativeQuery(sql.toString(), Product.class);
+        Query countQuery = entityManager.createNativeQuery(countSql.toString());
+
+        // Đổ tham số vào lệnh SQL
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            query.setParameter(entry.getKey(), entry.getValue());
+            countQuery.setParameter(entry.getKey(), entry.getValue());
+        }
+
+        // Phân trang
+        query.setFirstResult(page * size);
+        query.setMaxResults(size);
+
+        // Lấy kết quả
+        List<Product> products = query.getResultList();
+        long totalElements = ((Number) countQuery.getSingleResult()).longValue();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        // Map sang DTO Response
+        List<ProductResponse> content = products.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
 
         return ProductPageResponse.builder()
                 .content(content)
-                .pageNo(productPage.getNumber())
-                .pageSize(productPage.getSize())
-                .totalElements(productPage.getTotalElements())
-                .totalPages(productPage.getTotalPages())
-                .last(productPage.isLast())
+                .pageNo(page)
+                .pageSize(size)
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .last(page >= totalPages - 1)
                 .build();
     }
 }

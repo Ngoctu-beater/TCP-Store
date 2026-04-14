@@ -262,7 +262,7 @@ async function buyAgain(orderIdentifier, btnElement) {
     }
 
     // Chuyển hướng sang trang giỏ hàng
-    window.location.href = "cart.html";
+    window.location.href = "shopping_cart.html";
   } catch (error) {
     console.error("Lỗi khi Mua lại:", error);
     alert("Không thể kết nối đến máy chủ. Vui lòng thử lại!");
