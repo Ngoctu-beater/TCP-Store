@@ -89,7 +89,7 @@ const AddressManager = {
         return isValid ? data : null;
     },
 
-    // Lưu (Thêm/Sửa)
+    // Lưu
     async save() {
         const validatedData = this.validate();
         if (!validatedData) return;

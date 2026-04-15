@@ -426,44 +426,6 @@ const SidebarLogic = {
   },
 };
 
-async function loadSharedComponents() {
-  try {
-    const isAdminPage =
-      document.getElementById("admin-sidebar-placeholder") !== null;
-
-    if (isAdminPage) {
-      if (!AuthUtils.requireAdmin()) {
-        return;
-      }
-    }
-    const headerPlaceholder = document.getElementById("header-placeholder");
-    if (headerPlaceholder) {
-      const headerRes = await fetch("header.html");
-      if (headerRes.ok) headerPlaceholder.innerHTML = await headerRes.text();
-    }
-
-    const footerPlaceholder = document.getElementById("footer-placeholder");
-    if (footerPlaceholder) {
-      const footerRes = await fetch("footer.html");
-      if (footerRes.ok) footerPlaceholder.innerHTML = await footerRes.text();
-    }
-    const sidebarPlaceholder = document.getElementById("sidebar-placeholder");
-    if (sidebarPlaceholder) {
-      const sidebarRes = await fetch("sidebar.html");
-      if (sidebarRes.ok) {
-        sidebarPlaceholder.innerHTML = await sidebarRes.text();
-        SidebarLogic.init();
-      }
-    }
-
-    HeaderLogic.updateHeaderState();
-    HeaderLogic.loadCategories();
-    HeaderLogic.initSearch();
-  } catch (error) {
-    console.error("Lỗi tải thành phần chung:", error);
-  }
-}
-
 const AdminSidebarLogic = {
   init() {
     const currentPath =
@@ -504,6 +466,15 @@ const AdminSidebarLogic = {
 
 async function loadSharedComponents() {
   try {
+    const isAdminPage =
+      document.getElementById("admin-sidebar-placeholder") !== null;
+
+    if (isAdminPage) {
+      if (!AuthUtils.requireAdmin()) {
+        return;
+      }
+    }
+
     const headerPlaceholder = document.getElementById("header-placeholder");
     if (headerPlaceholder) {
       const headerRes = await fetch("components/header.html");
@@ -515,7 +486,7 @@ async function loadSharedComponents() {
       const footerRes = await fetch("components/footer.html");
       if (footerRes.ok) footerPlaceholder.innerHTML = await footerRes.text();
     }
-
+    
     const sidebarPlaceholder = document.getElementById("sidebar-placeholder");
     if (sidebarPlaceholder) {
       const sidebarRes = await fetch("components/sidebar.html");
@@ -563,105 +534,3 @@ window.addEventListener("click", (e) => {
     menu.classList.add("hidden");
   }
 });
-
-
-// Đóng/Mở cửa sổ chat
-function toggleChat() {
-    const chatWindow = document.getElementById("chat-window");
-    const toggleBtn = document.getElementById("chat-toggle-btn");
-
-    if (chatWindow.classList.contains("hidden")) {
-        chatWindow.classList.remove("hidden"); 
-        toggleBtn.style.display = "none";      
-        document.getElementById("chat-input").focus(); 
-        scrollToBottom(); // Vừa mở lên là phải cuộn xuống đáy ngay
-    } else {
-        chatWindow.classList.add("hidden");    
-        toggleBtn.style.display = "flex";      
-    }
-}
-
-// Bắt sự kiện nhấn phím Enter
-function handleKeyPress(event) {
-    if (event.key === "Enter") {
-        sendMessage();
-    }
-}
-
-// HÀM MỚI: Cuộn xuống đáy kiểu Messenger (Snap instant - Không dùng smooth delay)
-function scrollToBottom() {
-    const chatMessages = document.getElementById("chat-messages");
-    if (chatMessages) {
-        // Dùng requestAnimationFrame để đảm bảo trình duyệt đã vẽ xong HTML mới cuộn
-        requestAnimationFrame(() => {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        });
-    }
-}
-
-// Hàm gửi tin nhắn
-async function sendMessage() {
-    const inputEl = document.getElementById("chat-input");
-    const message = inputEl.value.trim();
-    if (!message) return;
-
-    // 1. In tin nhắn User
-    appendMessage("user", message);
-    inputEl.value = ""; // Xóa trắng ô nhập liệu
-
-    // 2. In bong bóng "..." của Bot và lấy ID
-    const typingId = appendMessage("bot", '<span class="animate-pulse">...</span>');
-
-    try {
-        const response = await fetch(`${AppConfig.PRODUCT_API_URL}/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: message })
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            updateMessage(typingId, data.reply);
-        } else {
-            updateMessage(typingId, "Xin lỗi, hệ thống đang bận. Vui lòng thử lại sau.");
-        }
-    } catch (error) {
-        console.error("Lỗi Chatbot:", error);
-        updateMessage(typingId, "Lỗi kết nối đến máy chủ.");
-    }
-}
-
-// Hàm vẽ tin nhắn lên UI (Đã fix lỗi sinh trùng ID)
-function appendMessage(sender, text) {
-    const chatMessages = document.getElementById("chat-messages");
-    
-    // Sinh ID độc nhất vô nhị (chống lỗi spam tin nhắn nhanh bị trùng ID)
-    const msgId = "msg-" + Date.now() + "-" + Math.floor(Math.random() * 1000); 
-    const isUser = sender === "user";
-
-    // VÁ LỖI: Thêm class 'message-content' để hàm update chọn đúng chỗ
-    const html = `
-        <div id="${msgId}" class="flex ${isUser ? 'justify-end' : 'justify-start'} mb-4">
-            <div class="message-content ${isUser ? 'bg-primary text-[#101818] rounded-bl-lg rounded-tl-lg rounded-tr-lg' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-br-lg rounded-tr-lg rounded-tl-lg'} p-3 max-w-[85%] break-words shadow-sm">
-                ${text}
-            </div>
-        </div>
-    `;
-    
-    chatMessages.insertAdjacentHTML('beforeend', html);
-    scrollToBottom(); // Gọi cuộn ngay lập tức
-    return msgId;
-}
-
-// Hàm cập nhật nội dung tin nhắn (Đã fix lỗi chọn nhầm thẻ)
-function updateMessage(id, newText) {
-    const msgEl = document.getElementById(id);
-    if (msgEl) {
-        // Chỉ tìm thẻ div có class 'message-content' nằm bên trong ID đó để thay chữ
-        const contentDiv = msgEl.querySelector('.message-content');
-        if (contentDiv) {
-            contentDiv.innerHTML = newText;
-        }
-        scrollToBottom(); // Chữ nhả ra dài hơn -> Cuộn tiếp xuống đáy
-    }
-}

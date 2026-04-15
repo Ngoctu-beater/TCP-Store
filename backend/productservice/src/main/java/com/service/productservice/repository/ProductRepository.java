@@ -45,4 +45,18 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
                                          @Param("categoryIds") List<Integer> categoryIds,
                                          @Param("status") StockStatus status,
                                          Pageable pageable);
+
+    @Query(value = "SELECT p.* FROM products p LEFT JOIN brands b ON p.brand_id = b.id " +
+            "WHERE p.is_active = true " +
+            "AND (LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(b.name) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND p.sale_price BETWEEN :minPrice AND :maxPrice " +
+            "ORDER BY p.sale_price ASC LIMIT 5", nativeQuery = true)
+    List<Product> findTop5ForChatbot(@Param("keyword") String keyword,
+                                     @Param("minPrice") Double minPrice,
+                                     @Param("maxPrice") Double maxPrice);
+
+    // Lấy ngẫu nhiên 5 sản phẩm cùng danh mục
+    @Query(value = "SELECT * FROM products WHERE category_id = :categoryId AND id != :productId AND is_active = true ORDER BY RAND() LIMIT 10", nativeQuery = true)
+    List<Product> findRelatedProducts(@Param("categoryId") Integer categoryId, @Param("productId") Integer productId);
 }

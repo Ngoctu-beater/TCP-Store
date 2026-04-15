@@ -33,7 +33,7 @@ public class ProductService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    // --- LẤY CHI TIẾT SẢN PHẨM THEO ID ---
+    // LẤY CHI TIẾT SẢN PHẨM THEO ID
     @Transactional(readOnly = true)
     public ProductResponse getProductById(Integer id) {
         Product product = productRepository.findById(id)
@@ -41,7 +41,7 @@ public class ProductService {
         return mapToResponse(product);
     }
 
-    // --- LẤY SẢN PHẨM THEO DANH MỤC ---
+    // LẤY SẢN PHẨM THEO DANH MỤC
     @Transactional(readOnly = true)
     public ProductPageResponse getProductsByCategory(Integer categoryId, int page, int size, String sortBy, String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
@@ -78,7 +78,7 @@ public class ProductService {
     private Map<String, Object> getCategoryConfigRecursive(Category category) {
         if (category == null) return null;
 
-        // Ưu tiên 1: Lấy config của chính danh mục này
+        // Lấy config của chính danh mục này
         if (category.getDisplayConfig() != null && !category.getDisplayConfig().isEmpty()) {
             try {
                 return objectMapper.readValue(category.getDisplayConfig(), new TypeReference<Map<String, Object>>() {});
@@ -87,20 +87,18 @@ public class ProductService {
             }
         }
 
-        // Ưu tiên 2: Nếu không có, tìm lên danh mục cha
+        // Nếu không có, tìm lên danh mục cha
         return getCategoryConfigRecursive(category.getParent());
     }
 
     private ProductResponse mapToResponse(Product product) {
-        // Map Specs
         Map<String, Object> specsMap = Collections.emptyMap();
         try {
             if (product.getSpecs() != null && !product.getSpecs().isEmpty()) {
                 specsMap = objectMapper.readValue(product.getSpecs(), new TypeReference<Map<String, Object>>() {});
             }
-        } catch (JsonProcessingException e) { /*...*/ }
+        } catch (JsonProcessingException e) {}
 
-        // Map Images & Colors
         List<String> images = new ArrayList<>();
         if (product.getImages() != null) {
             images = product.getImages().stream().map(ProductImage::getImageUrl).collect(Collectors.toList());
@@ -111,7 +109,6 @@ public class ProductService {
                     .colorName(c.getColorName()).colorImageUrl(c.getColorImageUrl()).build()).collect(Collectors.toList());
         }
 
-        // MAP CONFIG
         Map<String, Object> categoryConfigMap = getCategoryConfigRecursive(product.getCategory());
 
         return ProductResponse.builder()
@@ -373,11 +370,9 @@ public class ProductService {
         try {
             Map<String, Object> config = objectMapper.readValue(configStr, new TypeReference<Map<String, Object>>() {});
 
-            // 1. Lấy danh sách options đã định nghĩa cứng trong Database
             Map<String, Object> predefinedOptions = (Map<String, Object>) config.get("filter");
             if (predefinedOptions == null) predefinedOptions = new LinkedHashMap<>();
 
-            // 2. Lọc riêng danh sách Thương Hiệu (Brand) từ các sản phẩm thực tế trong kho
             List<Integer> allCategoryIds = getAllDescendantIds(categoryId);
             List<Product> products = productRepository.findByCategory_IdIn(allCategoryIds);
 
@@ -388,10 +383,8 @@ public class ProductService {
                 }
             }
 
-            // Nhét Brand vào chung với các options khác
             predefinedOptions.put("brand", new ArrayList<>(brandNames));
 
-            // 3. Đóng gói cả Nhãn (labels) và Nút bấm (options) trả về 1 cục cho JS dễ vẽ
             Map<String, Object> response = new HashMap<>();
             response.put("labels", config.get("labels"));
             response.put("filters", predefinedOptions);
@@ -448,21 +441,16 @@ public class ProductService {
             params.put("maxPrice", maxPrice);
         }
 
-        // ========================================================
-        // ĐÃ SỬA: LỌC CHÍNH XÁC VÀO TỪNG KEY TRONG JSON (VÀ XỬ LÝ CARD ONBOARD)
-        // ========================================================
         if (specs != null && !specs.trim().isEmpty() && !specs.equals("{}")) {
             try {
                 Map<String, String> specMap = objectMapper.readValue(specs, new TypeReference<Map<String, String>>() {});
                 int i = 0;
                 for (Map.Entry<String, String> entry : specMap.entrySet()) {
-                    // Dọn dẹp key để tránh lỗi cú pháp SQL và SQL Injection
                     String safeKey = entry.getKey().replaceAll("[^a-zA-Z0-9_]", "");
                     String val = entry.getValue();
                     String paramName = "specVal" + i;
 
                     if (val.equalsIgnoreCase("Card Onboard")) {
-                        // Nếu bấm nút Card Onboard thì tìm các từ khóa tương đương trong đúng trường GPU đó
                         sql.append(" AND (LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%intel%' ")
                                 .append(" OR LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%uhd%' ")
                                 .append(" OR LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%iris%' ")
@@ -473,7 +461,6 @@ public class ProductService {
                                 .append(" OR LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%iris%' ")
                                 .append(" OR LOWER(p.specs->>'$.").append(safeKey).append("') LIKE '%radeon graphics%')");
                     } else {
-                        // Tìm chính xác giá trị vào đúng cái Key được chọn (Chống lọc RAM 8GB ra Card 8GB)
                         sql.append(" AND LOWER(p.specs->>'$.").append(safeKey).append("') LIKE LOWER(:").append(paramName).append(")");
                         countSql.append(" AND LOWER(p.specs->>'$.").append(safeKey).append("') LIKE LOWER(:").append(paramName).append(")");
                         params.put(paramName, "%" + val + "%");
@@ -508,7 +495,6 @@ public class ProductService {
         long totalElements = ((Number) countQuery.getSingleResult()).longValue();
         int totalPages = (int) Math.ceil((double) totalElements / size);
 
-        // Map sang DTO Response
         List<ProductResponse> content = products.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -521,5 +507,29 @@ public class ProductService {
                 .totalPages(totalPages)
                 .last(page >= totalPages - 1)
                 .build();
+    }
+
+    // SẢN PHẨM LIÊN QUAN
+    public List<Map<String, Object>> getRelatedProducts(Integer productId) {
+        // Tìm sản phẩm hiện tại để lấy category_id của nó
+        Product currentProduct = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm"));
+
+        Integer categoryId = currentProduct.getCategory().getId();
+
+        // Tìm các sản phẩm liên quan
+        List<Product> relatedProducts = productRepository.findRelatedProducts(categoryId, productId);
+
+        // Chống lỗi vòng lặp JSON
+        return relatedProducts.stream().map(p -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", p.getId());
+            map.put("name", p.getName());
+            map.put("salePrice", p.getSalePrice());
+            map.put("thumbnail", p.getThumbnail());
+            map.put("basePrice", p.getBasePrice());
+            map.put("stock", p.getStock());
+            return map;
+        }).toList();
     }
 }

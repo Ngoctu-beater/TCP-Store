@@ -7,12 +7,12 @@ document.addEventListener("DOMContentLoaded", () => {
     avatarInput.addEventListener("change", function (e) {
       const file = e.target.files[0];
       if (file) {
-        selectedAvatarFile = file; // Lưu vào biến toàn cục để dùng khi bấm Lưu
+        selectedAvatarFile = file;
         const reader = new FileReader();
         reader.onload = function (event) {
           const preview = document.getElementById("admin-avatar-preview");
           preview.style.backgroundImage = `url('${event.target.result}')`;
-          preview.innerHTML = ""; // Xóa chữ viết tắt nếu có
+          preview.innerHTML = "";
         };
         reader.readAsDataURL(file);
       }
@@ -59,7 +59,7 @@ async function updateAdminProfile() {
   UIUtils.setLoading(btn, true, "Đang xử lý...");
 
   try {
-    // --- UPLOAD ẢNH NẾU CÓ ---
+    // UPLOAD ẢNH NẾU CÓ
     if (selectedAvatarFile) {
       const formData = new FormData();
       formData.append("file", selectedAvatarFile);
@@ -71,7 +71,7 @@ async function updateAdminProfile() {
       });
 
       if (uploadRes.ok) {
-        currentAvatarUrl = await uploadRes.text(); // Lấy URL ảnh mới trả về
+        currentAvatarUrl = await uploadRes.text();
       } else {
         alert("Lỗi upload ảnh! Vui lòng thử lại.");
         UIUtils.setLoading(btn, false, "Lưu thay đổi");
@@ -79,7 +79,7 @@ async function updateAdminProfile() {
       }
     }
 
-    // --- GỌI API CẬP NHẬT HỒ SƠ ---
+    // GỌI API CẬP NHẬT HỒ SƠ
     const response = await fetch(`${AppConfig.BASE_URL}/users/admin/profile`, {
       method: "PUT",
       headers: {
@@ -96,7 +96,7 @@ async function updateAdminProfile() {
 
     if (response.ok) {
       alert("Cập nhật thông tin thành công!");
-      selectedAvatarFile = null; // Reset file đã chọn
+      selectedAvatarFile = null;
 
       const currentEmail = AuthUtils.getUserInfo(AppConfig.KEYS.EMAIL);
       // NẾU ADMIN ĐỔI EMAIL -> BẮT ĐĂNG NHẬP LẠI
@@ -104,9 +104,8 @@ async function updateAdminProfile() {
         alert(
           "Bạn vừa thay đổi Email đăng nhập. Hệ thống sẽ tự động đăng xuất!",
         );
-        AuthUtils.logout(true); // <-- TRUYỀN 'true' VÀO ĐÂY
+        AuthUtils.logout(true);
       } else {
-        // Nếu chỉ đổi thông tin khác -> Cập nhật bộ nhớ và tải lại Header
         const userData = {
           userId: AuthUtils.getUserInfo(AppConfig.KEYS.USER_ID),
           fullName: fullName,
@@ -149,7 +148,7 @@ async function changeAdminPassword() {
     return;
   }
 
-  // --- KIỂM TRA MẬT KHẨU MỚI TRÙNG MẬT KHẨU CŨ ---
+  // KIỂM TRA MẬT KHẨU MỚI TRÙNG MẬT KHẨU CŨ
   if (currentPass === newPass) {
     alert("Mật khẩu mới không được trùng với mật khẩu hiện tại!");
     document.getElementById("admin-new-pass").focus();
@@ -181,7 +180,6 @@ async function changeAdminPassword() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          // Đính kèm Token của Admin
           Authorization: `Bearer ${AuthUtils.getToken()}`,
         },
         body: JSON.stringify({
@@ -196,11 +194,8 @@ async function changeAdminPassword() {
       alert(
         "Đổi mật khẩu thành công! Hệ thống sẽ tự động đăng xuất để bảo mật.",
       );
-
-      // Ép Admin đăng nhập lại sau khi đổi mật khẩu thành công
-      AuthUtils.logout(true); // <-- TRUYỀN 'true' VÀO ĐÂY
-    } else {
-      // Nếu sai mật khẩu cũ, Backend sẽ trả về lỗi
+      AuthUtils.logout(true);
+    } else {i
       const err = await response.text();
       alert("Lỗi: " + err);
     }
@@ -208,10 +203,8 @@ async function changeAdminPassword() {
     console.error("Lỗi gọi API:", error);
     alert("Lỗi kết nối đến máy chủ! Vui lòng thử lại sau.");
   } finally {
-    // Trả lại trạng thái ban đầu cho nút
     UIUtils.setLoading(btn, false, "Cập nhật mật khẩu");
 
-    // Làm rỗng các ô input nếu đổi thất bại
     document.getElementById("admin-current-pass").value = "";
     document.getElementById("admin-new-pass").value = "";
     document.getElementById("admin-confirm-pass").value = "";

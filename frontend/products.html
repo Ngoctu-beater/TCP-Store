@@ -251,7 +251,91 @@
 
     <div id="footer-placeholder"></div>
 
+    <button
+      id="chat-toggle-btn"
+      onclick="toggleChat()"
+      class="fixed bottom-6 right-6 bg-primary text-[#101818] p-4 rounded-full shadow-lg hover:scale-110 transition-transform z-50"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+        />
+      </svg>
+    </button>
+
+    <div
+      id="chat-window"
+      style="height: 500px"
+      class="fixed bottom-6 right-6 w-80 md:w-96 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl flex flex-col hidden z-50 overflow-hidden"
+    >
+      <div
+        class="bg-primary text-[#101818] p-4 flex justify-between items-center shrink-0"
+      >
+        <h3 class="font-bold">TCP Store Assistant</h3>
+        <button
+          onclick="toggleChat()"
+          class="text-[#101818] hover:text-white transition"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div
+        id="chat-messages"
+        class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50 dark:bg-gray-800 text-sm min-h-0"
+      >
+        <div class="flex justify-start mb-4">
+          <div
+            class="message-content bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 p-3 rounded-br-lg rounded-tr-lg rounded-tl-lg max-w-[85%] break-words shadow-sm"
+          >
+            Xin chào! TCP Store có thể giúp gì cho bạn?
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex gap-2 shrink-0"
+      >
+        <input
+          type="text"
+          id="chat-input"
+          placeholder="Nhập tin nhắn..."
+          class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-primary dark:bg-gray-800 dark:text-white"
+          onkeypress="handleKeyPress(event)"
+        />
+        <button
+          onclick="sendMessage()"
+          class="bg-primary text-[#101818] px-4 py-2 rounded-lg font-bold hover:opacity-90"
+        >
+          Gửi
+        </button>
+      </div>
+    </div>
+
     <script src="js/common.js"></script>
+    <script src="js/chatbot.js"></script>
     <script src="js/product.js"></script>
   </body>
 </html>

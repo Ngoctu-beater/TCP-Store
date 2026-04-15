@@ -29,6 +29,7 @@ public class SecurityConfig {
                         // Mở khóa cho danh mục và sản phẩm
                         .requestMatchers("/api/categories/**").permitAll()
                         .requestMatchers("/api/products/**").permitAll()
+                        .requestMatchers("/api/chat/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )

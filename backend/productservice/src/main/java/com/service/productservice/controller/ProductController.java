@@ -129,9 +129,13 @@ public class ProductController {
         return ResponseEntity.ok(productService.searchPublicProducts(keyword, categoryId, minPrice, maxPrice, brand, specs, page, limit, sortBy, sortDir));
     }
 
-    // Thêm Endpoint mới để lấy lựa chọn cấu hình
     @GetMapping("/category/{categoryId}/filters")
     public ResponseEntity<Map<String, Object>> getCategoryFilters(@PathVariable("categoryId") Integer categoryId) {
         return ResponseEntity.ok(productService.getFilterOptions(categoryId));
+    }
+
+    @GetMapping("/{id}/related")
+    public ResponseEntity<List<Map<String, Object>>> getRelatedProducts(@PathVariable Integer id) {
+        return ResponseEntity.ok(productService.getRelatedProducts(id));
     }
 }

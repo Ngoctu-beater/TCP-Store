@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadCategories();
   const searchInput = document.getElementById("search-category");
   if (searchInput) {
-    // Sự kiện 'input' giúp tìm kiếm real-time ngay khi người dùng đang gõ
+    // tìm kiếm real-time ngay khi người dùng đang gõ
     searchInput.addEventListener("input", (e) => {
       const keyword = e.target.value.trim().toLowerCase();
 
@@ -12,14 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Lọc danh sách: tìm theo tên danh mục HOẶC tên danh mục cha
       const filteredCategories = categoriesData.filter(
         (c) =>
           c.name.toLowerCase().includes(keyword) ||
           (c.parentName && c.parentName.toLowerCase().includes(keyword)),
       );
 
-      // Gọi lại hàm render để vẽ lại bảng với dữ liệu đã lọc
       renderTable(filteredCategories);
     });
   }
@@ -149,7 +147,7 @@ async function saveCategory() {
   const payload = {
     name: name,
     isFeatured: isFeatured,
-    displayConfig: null, // Truyền null vì không còn dùng tới
+    displayConfig: null,
     parentId: parentId ? parseInt(parentId) : null,
   };
 
