@@ -44,7 +44,7 @@ async function loadMyOrders() {
 
   try {
     const token = AuthUtils.getToken();
-    const response = await fetch(`${AppConfig.ORDER_API_URL}/my-orders`, {
+    const response = await fetch(`${AppConfig.ORDER_API_URL}/orders/my-orders`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -183,7 +183,7 @@ async function cancelOrder(orderCode) {
   try {
     const token = AuthUtils.getToken();
     const response = await fetch(
-      `${AppConfig.ORDER_API_URL}/${orderCode}/cancel`,
+      `${AppConfig.ORDER_API_URL}/orders/${orderCode}/cancel`,
       {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
@@ -192,7 +192,7 @@ async function cancelOrder(orderCode) {
 
     if (response.ok) {
       alert("Đã hủy đơn hàng thành công!");
-      loadMyOrders(); // Tải lại danh sách đơn hàng để cập nhật giao diện
+      loadMyOrders();
     } else {
       const errorText = await response.text();
       alert("Không thể hủy: " + errorText);
@@ -214,7 +214,6 @@ async function buyAgain(orderIdentifier, btnElement) {
     return;
   }
 
-  // Đổi giao diện nút thành Loading
   const originalText = btnElement.innerHTML;
   btnElement.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm align-middle">sync</span> Đang xử lý...`;
   btnElement.disabled = true;
@@ -222,7 +221,6 @@ async function buyAgain(orderIdentifier, btnElement) {
   try {
     const token = AuthUtils.getToken();
 
-    // THÊM TUẦN TỰ TỪNG SẢN PHẨM VÀO GIỎ HÀNG
     let successCount = 0;
 
     for (const item of order.items) {
@@ -267,7 +265,6 @@ async function buyAgain(orderIdentifier, btnElement) {
     console.error("Lỗi khi Mua lại:", error);
     alert("Không thể kết nối đến máy chủ. Vui lòng thử lại!");
 
-    // Phục hồi lại nút nếu bị lỗi
     btnElement.innerHTML = originalText;
     btnElement.disabled = false;
   }

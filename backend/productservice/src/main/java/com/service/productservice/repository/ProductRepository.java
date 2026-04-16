@@ -56,7 +56,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
                                      @Param("minPrice") Double minPrice,
                                      @Param("maxPrice") Double maxPrice);
 
-    // Lấy ngẫu nhiên 5 sản phẩm cùng danh mục
     @Query(value = "SELECT * FROM products WHERE category_id = :categoryId AND id != :productId AND is_active = true ORDER BY RAND() LIMIT 10", nativeQuery = true)
     List<Product> findRelatedProducts(@Param("categoryId") Integer categoryId, @Param("productId") Integer productId);
 }

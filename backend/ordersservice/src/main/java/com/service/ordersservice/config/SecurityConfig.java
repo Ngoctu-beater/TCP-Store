@@ -24,6 +24,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Mở khóa cho danh mục và sản phẩm
                         .requestMatchers("/api/orders/**").permitAll()
+                        .requestMatchers("/api/vouchers/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated()
                 )

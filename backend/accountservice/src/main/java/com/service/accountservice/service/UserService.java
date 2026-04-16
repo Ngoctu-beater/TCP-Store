@@ -35,7 +35,6 @@ public class UserService {
     private final RoleRepository roleRepository;
     private final AddressRepository addressRepository;
 
-    // Định nghĩa thư mục lưu trữ gốc
     private final Path rootLocation = Paths.get("uploads");
 
     @Transactional
@@ -89,17 +88,16 @@ public class UserService {
                     // Cần lấy ra: ten_file.jpg
                     String oldFileName = oldAvatarUrl.substring(oldAvatarUrl.lastIndexOf("/") + 1);
 
-                    // Chỉ xóa nếu KHÔNG PHẢI ảnh mặc định (nếu có quy định tên ảnh mặc định)
+                    // Chỉ xóa nếu KHÔNG PHẢI ảnh mặc định
                     // Ví dụ: if (!oldFileName.equals("default-avatar.png")) { ... }
 
                     Path oldFilePath = rootLocation.resolve(oldFileName);
 
-                    // Xóa file nếu tồn tại
                     Files.deleteIfExists(oldFilePath);
                     System.out.println("Đã xóa avatar cũ: " + oldFileName);
 
                 } catch (Exception e) {
-                    // Nếu lỗi xóa file cũ, chỉ log ra console, KHÔNG chặn luồng upload mới
+                    // Nếu lỗi xóa file cũ, log ra console, KHÔNG chặn luồng upload mới
                     System.err.println("Cảnh báo: Không thể xóa file cũ - " + e.getMessage());
                 }
             }
@@ -112,11 +110,10 @@ public class UserService {
                 Files.createDirectories(rootLocation);
             }
 
-            // Lưu file mới vào ổ cứng
+            // Lưu file mớ
             Path filePath = rootLocation.resolve(fileName);
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-            // Cập nhật đường dẫn vào Database
             String fileUrl = "http://localhost:8081/uploads/" + fileName;
             user.setAvatar(fileUrl);
             userRepository.save(user);
@@ -344,11 +341,9 @@ public class UserService {
         boolean requestedDefault = Boolean.TRUE.equals(request.getIsDefault());
         boolean currentlyDefault = Boolean.TRUE.equals(address.getIsDefault());
 
-        // Nếu đổi từ FALSE -> TRUE: reset những cái khác
         if (requestedDefault && !currentlyDefault) {
             handleDefaultAddressConflict(address.getUser().getUserId());
         }
-        // Nếu đổi từ TRUE -> FALSE: Chặn lại (vì luôn cần 1 địa chỉ mặc định)
         else if (!requestedDefault && currentlyDefault) {
             throw new RuntimeException("Phải có ít nhất một địa chỉ mặc định. Vui lòng chọn địa chỉ khác làm mặc định trước.");
         }
@@ -436,24 +431,6 @@ public class UserService {
         // Thiết lập địa chỉ hiện tại thành mặc định
         address.setIsDefault(true);
         addressRepository.save(address);
-    }
-
-    private LocalDateTime[] calculateTimeRange(Integer days, String dateStr) {
-        java.time.LocalDateTime start;
-        java.time.LocalDateTime end = java.time.LocalDateTime.now();
-
-        if (dateStr != null && !dateStr.trim().isEmpty()) {
-            java.time.LocalDate specificDate = java.time.LocalDate.parse(dateStr);
-            start = specificDate.atStartOfDay(); // 00:00:00
-            end = specificDate.atTime(23, 59, 59); // 23:59:59
-        } else {
-            start = java.time.LocalDateTime.now().minusDays(days != null ? days : 30);
-
-            if (days != null && days == 1) {
-                start = java.time.LocalDate.now().atStartOfDay();
-            }
-        }
-        return new java.time.LocalDateTime[]{start, end};
     }
 
     public com.service.accountservice.dto.UserStatResponse getNewUserCount(String filter, String dateStr) {

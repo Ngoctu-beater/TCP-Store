@@ -42,7 +42,7 @@ async function loadOrders() {
   tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8"><span class="material-symbols-outlined animate-spin text-primary">progress_activity</span> Đang tải dữ liệu...</td></tr>`;
 
   try {
-    const url = `${baseUrl}/admin?keyword=${encodeURIComponent(currentSearch)}&status=${currentStatus}&page=${currentPage}&size=${pageSize}`;
+    const url = `${baseUrl}/orders/admin?keyword=${encodeURIComponent(currentSearch)}&status=${currentStatus}&page=${currentPage}&size=${pageSize}`;
 
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${AuthUtils.getToken()}` },
@@ -61,7 +61,7 @@ async function loadOrders() {
 }
 async function loadOrderStatistics() {
     try {
-        const url = `${AppConfig.ORDER_API_URL}/admin/statistics`;
+        const url = `${AppConfig.ORDER_API_URL}/orders/admin/statistics`;
         const response = await fetch(url, {
             headers: { "Authorization": `Bearer ${AuthUtils.getToken()}` }
         });
@@ -246,7 +246,7 @@ async function openOrderModal(orderCode, mode = "view") {
   tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6"><span class="material-symbols-outlined animate-spin text-primary">progress_activity</span></td></tr>`;
 
   try {
-    const url = `${AppConfig.ORDER_API_URL}/admin/${orderCode}`;
+    const url = `${AppConfig.ORDER_API_URL}/orders/admin/${orderCode}`;
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${AuthUtils.getToken()}` },
     });
@@ -367,7 +367,7 @@ async function saveOrderStatus() {
 
   UIUtils.setLoading(btn, true, "Đang xử lý...");
   try {
-    const url = `${AppConfig.ORDER_API_URL}/${orderCode}/status?status=${newStatus}`;
+    const url = `${AppConfig.ORDER_API_URL}/orders/${orderCode}/status?status=${newStatus}`;
     const response = await fetch(url, {
       method: "PUT",
       headers: { Authorization: `Bearer ${AuthUtils.getToken()}` },

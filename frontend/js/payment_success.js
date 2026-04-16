@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const orderCode = urlParams.get("orderCode");
 
-  // --- Chặn thêm trường hợp chữ "undefined" và "null" ---
   if (!orderCode || orderCode === "undefined" || orderCode === "null") {
     alert("Không tìm thấy mã đơn hàng hợp lệ!");
     window.location.href = "home.html";
@@ -20,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     // Gọi API lấy chi tiết đơn hàng
     const token = AuthUtils.getToken();
-    const response = await fetch(`${AppConfig.ORDER_API_URL}/${orderCode}`, {
+    const response = await fetch(`${AppConfig.ORDER_API_URL}/orders/${orderCode}`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });

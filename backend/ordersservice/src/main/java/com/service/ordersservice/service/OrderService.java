@@ -1,11 +1,14 @@
 package com.service.ordersservice.service;
 
 import com.service.ordersservice.dto.*;
+import com.service.ordersservice.enums.DiscountType;
 import com.service.ordersservice.enums.OrderStatus;
 import com.service.ordersservice.enums.PaymentStatus;
 import com.service.ordersservice.model.Order;
 import com.service.ordersservice.model.OrderItem;
+import com.service.ordersservice.model.Voucher;
 import com.service.ordersservice.repository.OrderRepository;
+import com.service.ordersservice.repository.VoucherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,14 +35,15 @@ import java.util.stream.Collectors;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductServiceClient productServiceClient;
+    private final VoucherRepository voucherRepository;
 
-    // Khai báo bộ ký tự an toàn (Loại bỏ O, 0, I, 1)
+    // Khai báo bộ ký tự an toàn
     private static final String ALLOWED_CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
     @Transactional
     public Order createOrder(Integer userId, OrderRequest request) {
-        // TẠO MÁ ĐƠN HÀNG
+        // TẠO MÃ ĐƠN HÀNG
         String orderCode = generateOrderCode();
 
         // Tính toán tổng tiền
@@ -49,9 +53,27 @@ public class OrderService {
             subTotal = subTotal.add(itemTotal);
         }
 
-        BigDecimal discount = request.getDiscountAmount() != null ? request.getDiscountAmount() : BigDecimal.ZERO;
+        // Tính tiền giảm
+        BigDecimal discount = BigDecimal.ZERO;
+        String voucherCode = request.getVoucherCode();
+
+        if (voucherCode != null && !voucherCode.trim().isEmpty()) {
+            Map<String, Object> validationResult = validateAndCalculateDiscount(voucherCode, subTotal);
+
+            if ((Boolean) validationResult.get("isValid")) {
+                discount = (BigDecimal) validationResult.get("discountAmount");
+                incrementVoucherUsage(voucherCode); // Tăng lượt sử dụng voucher lên 1
+            } else {
+                // Nếu mã không hợp lệ, không cho tạo đơn
+                throw new RuntimeException((String) validationResult.get("message"));
+            }
+        }
+
         BigDecimal shipping = request.getShippingFee() != null ? request.getShippingFee() : BigDecimal.ZERO;
-        BigDecimal totalAmount = subTotal.subtract(discount).add(shipping);
+
+        // Tính tổng tiền cuối cùng
+        BigDecimal calculatedTotal = subTotal.subtract(discount).add(shipping);
+        BigDecimal totalAmount = calculatedTotal.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : calculatedTotal;
 
         // Khởi tạo Order
         Order order = Order.builder()
@@ -63,7 +85,7 @@ public class OrderService {
                 .paymentMethod(request.getPaymentMethod())
                 .paymentStatus(PaymentStatus.PENDING)
                 .orderStatus(OrderStatus.PENDING)
-                .voucherCode(request.getVoucherCode())
+                .voucherCode(voucherCode)
                 .subTotal(subTotal)
                 .discountAmount(discount)
                 .shippingFee(shipping)
@@ -84,35 +106,97 @@ public class OrderService {
 
         order.setItems(items);
 
-        // Lưu vào database
         return orderRepository.save(order);
+    }
+
+    // Xử lý voucher và tính toán
+    @Transactional(readOnly = true)
+    public Map<String, Object> validateAndCalculateDiscount(String code, BigDecimal orderSubTotal) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Voucher voucher = voucherRepository.findByVoucherCodeAndIsActiveTrue(code)
+                    .orElseThrow(() -> new RuntimeException("Mã giảm giá không tồn tại hoặc đã bị khóa"));
+
+            LocalDateTime now = LocalDateTime.now();
+
+            if (voucher.getStartDate() != null && now.isBefore(voucher.getStartDate())) {
+                throw new RuntimeException("Mã giảm giá chưa tới thời gian sử dụng");
+            }
+            if (voucher.getEndDate() != null && now.isAfter(voucher.getEndDate())) {
+                throw new RuntimeException("Mã giảm giá đã hết hạn");
+            }
+
+            int currentUsedCount = voucher.getUsedCount() != null ? voucher.getUsedCount() : 0;
+            if (voucher.getUsageLimit() != null && currentUsedCount >= voucher.getUsageLimit()) {
+                throw new RuntimeException("Mã giảm giá đã hết lượt sử dụng");
+            }
+
+            if (voucher.getMinOrderAmount() != null && orderSubTotal.compareTo(voucher.getMinOrderAmount()) < 0) {
+                throw new RuntimeException("Đơn hàng chưa đạt giá trị tối thiểu " + voucher.getMinOrderAmount() + "đ để áp dụng mã này");
+            }
+
+            // Tính số tiền được giảm
+            BigDecimal discountAmount = BigDecimal.ZERO;
+
+            if (voucher.getDiscountType() == DiscountType.FIXED_AMOUNT) {
+                discountAmount = voucher.getDiscountValue();
+            } else if (voucher.getDiscountType() == DiscountType.PERCENTAGE) {
+                discountAmount = orderSubTotal.multiply(voucher.getDiscountValue()).divide(new BigDecimal("100"));
+
+                // Nếu vượt quá mức giảm tối đa thì gán bằng mức giảm tối đa
+                if (voucher.getMaxDiscountAmount() != null && discountAmount.compareTo(voucher.getMaxDiscountAmount()) > 0) {
+                    discountAmount = voucher.getMaxDiscountAmount();
+                }
+            }
+
+            // Đảm bảo không giảm giá lố tiền hàng
+            if (discountAmount.compareTo(orderSubTotal) > 0) {
+                discountAmount = orderSubTotal;
+            }
+
+            response.put("isValid", true);
+            response.put("discountAmount", discountAmount);
+            response.put("voucherCode", voucher.getVoucherCode());
+            response.put("message", "Áp dụng mã thành công!");
+            return response;
+
+        } catch (Exception e) {
+            response.put("isValid", false);
+            response.put("discountAmount", BigDecimal.ZERO);
+            response.put("message", e.getMessage());
+            return response;
+        }
+    }
+
+    private void incrementVoucherUsage(String code) {
+        voucherRepository.findByVoucherCodeAndIsActiveTrue(code).ifPresent(voucher -> {
+            voucher.setUsedCount(voucher.getUsedCount() + 1);
+            voucherRepository.save(voucher);
+        });
     }
 
     public List<Order> getOrdersByUser(Integer userId) {
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    // --- Hàm sinh mã đơn hàng ---
+    // Hàm sinh mã đơn hàng
     private String generateOrderCode() {
-        // Prefix
         String prefix = "TCPS";
 
-        // Date part: YYMMDD
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyMMdd"));
 
-        // Random part: 4 ký tự an toàn
         StringBuilder randomPart = new StringBuilder(4);
         for (int i = 0; i < 4; i++) {
             randomPart.append(ALLOWED_CHARACTERS.charAt(RANDOM.nextInt(ALLOWED_CHARACTERS.length())));
         }
 
-        // Combine: TCPS-260219-A7K4
         return prefix + "-" + datePart + "-" + randomPart.toString();
     }
 
     @Transactional(readOnly = true)
     public Order getOrderByCode(String identifier) {
-        // Thử tìm theo ID trước (nếu identifier truyền vào là một con số như "7")
+        // Thử tìm theo ID trước
         try {
             Integer id = Integer.parseInt(identifier);
             Optional<Order> orderById = orderRepository.findById(id);

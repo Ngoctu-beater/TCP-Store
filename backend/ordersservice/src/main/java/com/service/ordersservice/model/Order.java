@@ -83,4 +83,15 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
+
+    @PrePersist
+    @PreUpdate
+    public void calculateTotalAmount() {
+        BigDecimal currentSubTotal = this.subTotal != null ? this.subTotal : BigDecimal.ZERO;
+        BigDecimal currentDiscount = this.discountAmount != null ? this.discountAmount : BigDecimal.ZERO;
+        BigDecimal currentShipping = this.shippingFee != null ? this.shippingFee : BigDecimal.ZERO;
+
+        BigDecimal calculatedTotal = currentSubTotal.subtract(currentDiscount).add(currentShipping);
+        this.totalAmount = calculatedTotal.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : calculatedTotal;
+    }
 }

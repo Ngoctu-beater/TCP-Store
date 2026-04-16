@@ -1,0 +1,370 @@
+<!doctype html>
+<html class="light" lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Quản lý khuyến mãi</title>
+    <script>
+      const userRole =
+        localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+      if (userRole !== "ADMIN" && userRole !== "ROLE_ADMIN") {
+        window.location.replace("home.html");
+      }
+    </script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#1d7fe2",
+              "background-light": "#f6f7f8",
+              "background-dark": "#111921",
+              "surface-light": "#ffffff",
+              "surface-dark": "#1a242f",
+            },
+            fontFamily: { display: ["Manrope", "sans-serif"] },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+        font-size: 24px;
+      }
+      .filled {
+        font-variation-settings:
+          "FILL" 1,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-background-light dark:bg-background-dark font-display text-[#111417] overflow-hidden"
+  >
+    <div class="flex h-screen w-full">
+      <div id="admin-sidebar-placeholder" class="contents"></div>
+      <main
+        class="flex-1 flex flex-col h-full overflow-hidden relative bg-background-light"
+      >
+        <div id="admin-header-placeholder" class="contents"></div>
+        <div class="flex-1 overflow-y-auto p-6">
+          <div class="max-w-[1400px] mx-auto flex flex-col gap-6">
+            <div
+              class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+            >
+              <div>
+                <h1 class="text-2xl font-bold text-[#111417]">
+                  Danh sách mã giảm giá
+                </h1>
+                <p class="text-sm text-[#637588] mt-1">
+                  Quản lý các chương trình khuyến mãi và voucher
+                </p>
+              </div>
+              <button
+                onclick="openVoucherModal()"
+                class="flex items-center gap-2 h-10 px-5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-blue-600 transition-colors shadow-sm"
+              >
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                Thêm mã mới
+              </button>
+            </div>
+
+            <div
+              class="bg-surface-light rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col overflow-hidden"
+            >
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead class="bg-[#f9fafb]">
+                    <tr>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588]"
+                      >
+                        Mã Voucher
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588]"
+                      >
+                        Loại giảm
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588]"
+                      >
+                        Giá trị
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588]"
+                      >
+                        Đơn tối thiểu
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588]"
+                      >
+                        Đã dùng / Tổng
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588]"
+                      >
+                        Hạn dùng
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Trạng thái
+                      </th>
+                      <th
+                        class="py-3 px-6 text-xs font-bold uppercase tracking-wider text-[#637588] text-center"
+                      >
+                        Hành động
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="voucher-table-body"
+                    class="divide-y divide-[#e5e7eb]"
+                  ></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div
+      id="voucher-modal"
+      class="fixed inset-0 z-50 hidden bg-black/50 flex items-center justify-center backdrop-blur-sm transition-opacity"
+    >
+      <div
+        class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh]"
+      >
+        <div
+          class="px-6 py-4 border-b border-[#e5e7eb] flex justify-between items-center bg-gray-50"
+        >
+          <h3 id="modal-voucher-title" class="text-xl font-bold text-[#111417]">
+            Thêm mã giảm giá mới
+          </h3>
+          <button
+            onclick="closeVoucherModal()"
+            class="text-gray-400 hover:text-red-500 transition-colors"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="p-6 overflow-y-auto flex-1 bg-gray-50/50">
+          <form id="voucher-form" class="flex flex-col gap-6">
+            <input type="hidden" id="modal-voucher-id" />
+
+            <div
+              class="bg-white p-6 rounded-xl border border-[#e5e7eb] shadow-sm"
+            >
+              <h4
+                class="font-bold text-primary mb-4 flex items-center gap-2 border-b pb-2"
+              >
+                <span class="material-symbols-outlined">loyalty</span>Thông tin
+                cơ bản
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-sm font-bold text-[#111417] mb-1"
+                    >Mã Voucher (Code)
+                    <span class="text-red-500">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="modal-voucher-code"
+                    placeholder="VD: TET2025"
+                    required
+                    class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm uppercase"
+                  />
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-sm font-bold text-[#111417] mb-1"
+                      >Loại giảm <span class="text-red-500">*</span></label
+                    >
+                    <select
+                      id="modal-voucher-type"
+                      onchange="toggleMaxDiscountField()"
+                      class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                    >
+                      <option value="PERCENTAGE">Phần trăm (%)</option>
+                      <option value="FIXED_AMOUNT">Số tiền (VNĐ)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-bold text-[#111417] mb-1"
+                      >Giá trị giảm <span class="text-red-500">*</span></label
+                    >
+                    <input
+                      type="number"
+                      id="modal-voucher-value"
+                      required
+                      class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white p-6 rounded-xl border border-[#e5e7eb] shadow-sm"
+            >
+              <h4
+                class="font-bold text-green-600 mb-4 flex items-center gap-2 border-b pb-2"
+              >
+                <span class="material-symbols-outlined">rule</span>Điều kiện áp
+                dụng
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label class="block text-sm font-bold text-[#111417] mb-1"
+                    >Đơn tối thiểu (VNĐ)</label
+                  >
+                  <input
+                    type="number"
+                    id="modal-voucher-min-order"
+                    placeholder="0"
+                    class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-[#111417] mb-1"
+                    >Giảm tối đa (VNĐ)
+                    <span class="text-gray-400 font-normal text-xs"
+                      >(Chỉ cho %)</span
+                    ></label
+                  >
+                  <input
+                    type="number"
+                    id="modal-voucher-max-discount"
+                    placeholder="Không giới hạn"
+                    class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-[#111417] mb-1"
+                    >Tổng số lượt sử dụng</label
+                  >
+                  <input
+                    type="number"
+                    id="modal-voucher-usage-limit"
+                    placeholder="Không giới hạn"
+                    class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="bg-white p-6 rounded-xl border border-[#e5e7eb] shadow-sm"
+            >
+              <h4
+                class="font-bold text-orange-500 mb-4 flex items-center gap-2 border-b pb-2"
+              >
+                <span class="material-symbols-outlined">schedule</span>Thời gian
+                & Trạng thái
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label class="block text-sm font-bold text-[#111417] mb-1"
+                    >Ngày bắt đầu</label
+                  >
+                  <input
+                    type="datetime-local"
+                    id="modal-voucher-start"
+                    onchange="handleStartDateChange()"
+                    class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-[#111417] mb-1"
+                    >Ngày kết thúc</label
+                  >
+                  <input
+                    type="datetime-local"
+                    id="modal-voucher-end"
+                    class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                  />
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-[#111417] mb-1"
+                    >Trạng thái</label
+                  >
+                  <select
+                    id="modal-voucher-active"
+                    class="w-full h-10 px-3 rounded-lg border border-[#e5e7eb] focus:ring-primary focus:border-primary text-sm"
+                  >
+                    <option value="true">Đang kích hoạt</option>
+                    <option value="false">Khóa (Tạm dừng)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div
+          class="px-6 py-4 border-t border-[#e5e7eb] flex justify-end gap-3 bg-white"
+        >
+          <button
+            onclick="closeVoucherModal()"
+            class="px-5 py-2.5 rounded-lg border border-[#e5e7eb] text-[#637588] hover:bg-gray-50 font-bold text-sm transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            id="btn-save-voucher"
+            onclick="saveVoucher()"
+            class="px-5 py-2.5 rounded-lg bg-primary text-white font-bold text-sm hover:bg-blue-600 shadow-sm transition-colors flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-[18px]">save</span> Lưu
+            voucher
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="js/common.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/voucher_management.js"></script>
+</html>

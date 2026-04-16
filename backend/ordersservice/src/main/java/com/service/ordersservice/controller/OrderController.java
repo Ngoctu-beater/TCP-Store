@@ -35,7 +35,7 @@ public class OrderController {
             @RequestHeader("Authorization") String token,
             @RequestBody OrderRequest request) {
 
-        Integer userId = getUserId(token); // Sẽ lấy đúng ID của người đang đăng nhập
+        Integer userId = getUserId(token);
         Order savedOrder = orderService.createOrder(userId, request);
         return ResponseEntity.ok(savedOrder);
     }

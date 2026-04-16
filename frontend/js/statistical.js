@@ -1,9 +1,10 @@
 let currentFilterQuery = "?days=30";
 
 document.addEventListener("DOMContentLoaded", function () {
-  initFilterLogic(); // Khởi tạo sự kiện cho các nút lọc
-  reloadAllStats(); // Tải dữ liệu lần đầu
+  initFilterLogic();
+  reloadAllStats();
 });
+
 function reloadAllStats() {
   renderDashboardStats(currentFilterQuery);
   renderRevenueChart(currentFilterQuery);
@@ -14,7 +15,7 @@ async function renderRevenueChart(queryStr = "") {
   if (!AuthUtils.isLoggedIn()) return;
 
   try {
-    const apiUrl = `${AppConfig.ORDER_API_URL}/admin/statistics/revenue${queryStr}`;
+    const apiUrl = `${AppConfig.ORDER_API_URL}/orders/admin/statistics/revenue${queryStr}`;
 
     // Lấy token để xác thực Admin
     const token = AuthUtils.getToken();
@@ -49,7 +50,6 @@ async function renderRevenueChart(queryStr = "") {
 
     const ctx = canvas.getContext("2d");
 
-    // Tạo màu Gradient cho đường Doanh thu
     let revenueGradient = ctx.createLinearGradient(0, 0, 0, 300);
     revenueGradient.addColorStop(0, "rgba(29, 127, 226, 0.2)");
     revenueGradient.addColorStop(1, "rgba(29, 127, 226, 0)");
@@ -127,12 +127,12 @@ async function renderRevenueChart(queryStr = "") {
     console.error("Lỗi vẽ biểu đồ:", error);
   }
 }
+
 async function renderCategoryChart(queryStr = "") {
   if (!AuthUtils.isLoggedIn()) return;
 
   try {
-    // Gọi sang Product Service lấy API thống kê danh mục
-    const apiUrl = `${AppConfig.ORDER_API_URL}/admin/statistics/categories${queryStr}`;
+    const apiUrl = `${AppConfig.ORDER_API_URL}/orders/admin/statistics/categories${queryStr}`;
     const token = AuthUtils.getToken();
 
     const response = await fetch(apiUrl, {
@@ -146,7 +146,7 @@ async function renderCategoryChart(queryStr = "") {
     // Chỉ lấy những danh mục có doanh thu > 0
     const validData = data.filter((item) => item.totalRevenue > 0);
 
-    // --- LẤY CANVAS VÀ XÓA BIỂU ĐỒ CŨ NGAY TỪ ĐẦU ---
+    // LẤY CANVAS VÀ XÓA BIỂU ĐỒ CŨ NGAY TỪ ĐẦU
     const canvas = document.getElementById("categoryChart");
     if (canvas) {
       let existingChart = Chart.getChart(canvas);
@@ -155,7 +155,7 @@ async function renderCategoryChart(queryStr = "") {
       }
     }
 
-    // --- XỬ LÝ NẾU KHÔNG CÓ DỮ LIỆU ---
+    // XỬ LÝ NẾU KHÔNG CÓ DỮ LIỆU
     if (validData.length === 0) {
       document.getElementById("category-legend").innerHTML =
         '<p class="text-center text-sm text-gray-500">Chưa có dữ liệu</p>';
@@ -164,10 +164,10 @@ async function renderCategoryChart(queryStr = "") {
       const totalLabel = document.getElementById("total-revenue-label");
       if (totalLabel) totalLabel.innerText = "0 ₫";
 
-      return; // Thoát hàm, không vẽ biểu đồ mới
+      return;
     }
 
-    // --- NẾU CÓ DỮ LIỆU THÌ TIẾP TỤC VẼ BIỂU ĐỒ ---
+    // NẾU CÓ DỮ LIỆU THÌ TIẾP TỤC VẼ BIỂU ĐỒ
     // Bóc tách dữ liệu
     const labels = validData.map((item) => item.categoryName);
     const revenues = validData.map((item) => item.totalRevenue);
@@ -198,14 +198,14 @@ async function renderCategoryChart(queryStr = "") {
             data: revenues,
             backgroundColor: colors.slice(0, labels.length),
             borderWidth: 0,
-            hoverOffset: 4, // Hiệu ứng phóng to khi hover chuột
+            hoverOffset: 4,
           },
         ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: "75%", // Tạo độ rỗng lớn ở giữa để nhét chữ
+        cutout: "75%",
         plugins: {
           legend: {
             display: false,
@@ -224,7 +224,7 @@ async function renderCategoryChart(queryStr = "") {
       },
     });
 
-    // Tự động sinh danh sách Legend HTML
+    // Tự động sinh danh sách chú giải bên cạnh biểu đồ
     const legendContainer = document.getElementById("category-legend");
     let legendHtml = "";
     validData.forEach((item, index) => {
@@ -244,11 +244,12 @@ async function renderCategoryChart(queryStr = "") {
     console.error("Lỗi vẽ biểu đồ cơ cấu doanh thu:", error);
   }
 }
+
 async function renderDashboardStats(queryStr = "") {
   if (!AuthUtils.isLoggedIn()) return;
 
   try {
-    const apiUrl = `${AppConfig.ORDER_API_URL}/admin/statistics/dashboard${queryStr}`;
+    const apiUrl = `${AppConfig.ORDER_API_URL}/orders/admin/statistics/dashboard${queryStr}`;
     const token = AuthUtils.getToken();
 
     const response = await fetch(apiUrl, {
@@ -259,7 +260,6 @@ async function renderDashboardStats(queryStr = "") {
     if (!response.ok) throw new Error("Không thể lấy dữ liệu tổng quan");
     const data = await response.json();
 
-    // --- GÁN DỮ LIỆU VÀO HTML ---
     // Tổng đơn hàng
     const totalOrdersEl = document.getElementById("stat-total-orders");
     if (totalOrdersEl) {
@@ -337,7 +337,7 @@ function initFilterLogic() {
       if (dateInput)
         dateInput.classList.remove("ring-2", "ring-primary", "border-primary");
 
-      // Xây dựng chuỗi Query dựa theo nút
+      // Query dựa theo nút
       const filter = this.getAttribute("data-filter");
       if (filter === "today") currentFilterQuery = "?filter=today";
       if (filter === "week") currentFilterQuery = "?filter=week";
