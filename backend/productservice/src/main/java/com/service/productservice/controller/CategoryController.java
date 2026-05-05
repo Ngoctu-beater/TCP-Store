@@ -1,6 +1,7 @@
 package com.service.productservice.controller;
 
 import com.service.productservice.dto.CategoryRequest;
+import com.service.productservice.dto.CategoryResponse;
 import com.service.productservice.dto.CategoryTreeResponse;
 import com.service.productservice.model.Category;
 import com.service.productservice.service.CategoryService;
@@ -86,5 +87,10 @@ public class CategoryController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Không thể xóa danh mục này!");
         }
+    }
+
+    @GetMapping("/featured")
+    public ResponseEntity<List<CategoryResponse>> getFeaturedCategories() {
+        return ResponseEntity.ok(categoryService.getFeaturedCategories());
     }
 }

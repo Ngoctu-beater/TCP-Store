@@ -8,10 +8,8 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -108,7 +106,7 @@ public class ChatbotService {
 
                 3. NGUYÊN TẮC CHUNG:
                    - Trả lời ngắn gọn 2-3 câu giống như đang nhắn tin Zalo/Messenger.
-                   - Nếu khách hỏi những chủ đề nhạy cảm (chính trị, bạo lực), hãy khéo léo bẻ lái câu chuyện sang chủ đề khác cho vui vẻ.
+                   - Nếu khách hỏi những chủ đề nhạy cảm (chính trị, bạo lực), hãy khéo léo bẻ lái câu chuyện sang chủ đề khác cho vui vẻ. 
 
                 CÂU HỎI / TIN NHẮN CỦA KHÁCH: %s
                 """.formatted(greetingContext, context.toString(), userMessage);

@@ -132,6 +132,7 @@
                 </div>
               </div>
             </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
               <div
                 class="bg-surface-light p-5 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col gap-4"
@@ -254,6 +255,7 @@
                 ></div>
               </div>
             </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div
                 class="lg:col-span-2 bg-surface-light rounded-xl border border-[#e5e7eb] shadow-sm p-6 flex flex-col"
@@ -277,6 +279,7 @@
                   <canvas id="revenueChart"></canvas>
                 </div>
               </div>
+
               <div
                 class="lg:col-span-1 bg-surface-light rounded-xl border border-[#e5e7eb] shadow-sm p-6 flex flex-col h-full"
               >
@@ -311,6 +314,82 @@
                   id="category-legend"
                   class="flex flex-col gap-3 mt-4 overflow-y-auto max-h-40 pr-2"
                 ></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div
+                class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col"
+              >
+                <div
+                  class="p-4 border-b border-gray-100 bg-orange-50/50 flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-orange-500"
+                    >local_fire_department</span
+                  >
+                  <h3 class="font-bold text-gray-800">Sản Phẩm Bán Chạy</h3>
+                </div>
+                <div class="p-0 flex-1 overflow-x-auto">
+                  <table class="w-full text-sm text-left">
+                    <tbody id="top-selling-body">
+                      <tr>
+                        <td class="p-4 text-center text-gray-400">
+                          Đang tải...
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div
+                class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col"
+              >
+                <div
+                  class="p-4 border-b border-gray-100 bg-red-50/50 flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-red-500"
+                    >warning</span
+                  >
+                  <h3 class="font-bold text-gray-800">Sắp Hết Hàng</h3>
+                </div>
+                <div class="p-0 flex-1 overflow-x-auto">
+                  <table class="w-full text-sm text-left">
+                    <tbody id="low-stock-body">
+                      <tr>
+                        <td class="p-4 text-center text-gray-400">
+                          Đang tải...
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div
+                class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col"
+              >
+                <div
+                  class="p-4 border-b border-gray-100 bg-blue-50/50 flex items-center gap-2"
+                >
+                  <span class="material-symbols-outlined text-blue-500"
+                    >inventory_2</span
+                  >
+                  <h3 class="font-bold text-gray-800">
+                    Tồn Kho Nhiều
+                  </h3>
+                </div>
+                <div class="p-0 flex-1 overflow-x-auto">
+                  <table class="w-full text-sm text-left">
+                    <tbody id="high-stock-body">
+                      <tr>
+                        <td class="p-4 text-center text-gray-400">
+                          Đang tải...
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>

@@ -16,6 +16,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class ProductResponse {
     private Integer id;
+    private Integer categoryId;
     private String categoryName;
     private String sku;
     private String name;
@@ -28,11 +29,10 @@ public class ProductResponse {
     private Map<String, Object> specs;
     private Map<String, Object> categoryConfig;
 
-    // --- THÊM CÁC TRƯỜNG MỚI (Cho chi tiết sản phẩm) ---
-    private List<String> images;      // Danh sách ảnh phụ
-    private List<ColorDTO> colors;    // Danh sách màu sắc
 
-    // Inner class để chứa thông tin màu
+    private List<String> images;
+    private List<ColorDTO> colors;
+
     @Data
     @Builder
     @NoArgsConstructor

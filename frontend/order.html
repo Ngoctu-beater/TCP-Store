@@ -95,31 +95,37 @@
             >
               <div class="flex items-center overflow-x-auto hide-scrollbar">
                 <button
-                  class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
+                  onclick="changeOrderTab('ALL', this)"
+                  class="whitespace-nowrap px-6 py-4 text-sm font-bold border-b-2 border-primary text-primary"
                 >
                   Tất cả
                 </button>
                 <button
+                  onclick="changeOrderTab('PENDING', this)"
                   class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
                 >
                   Chờ xác nhận
                 </button>
                 <button
+                  onclick="changeOrderTab('CONFIRMED', this)"
                   class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
                 >
                   Đã xác nhận
                 </button>
                 <button
+                  onclick="changeOrderTab('SHIPPING', this)"
                   class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
                 >
                   Đang giao
                 </button>
                 <button
-                  class="whitespace-nowrap px-6 py-4 text-sm font-bold border-b-2 border-primary text-primary"
+                  onclick="changeOrderTab('DELIVERED', this)"
+                  class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
                 >
                   Hoàn thành
                 </button>
                 <button
+                  onclick="changeOrderTab('CANCELLED', this)"
                   class="whitespace-nowrap px-6 py-4 text-sm font-medium border-b-2 hover:text-primary transition-colors border-transparent text-gray-500 dark:text-gray-400"
                 >
                   Đã hủy

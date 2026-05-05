@@ -5,6 +5,7 @@ import com.service.ordersservice.service.OrderService;
 import com.service.ordersservice.service.VoucherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,8 +22,14 @@ public class VoucherController {
     private final OrderService orderService;
 
     @GetMapping("/admin/all")
-    public ResponseEntity<List<Voucher>> getAll() {
-        return ResponseEntity.ok(voucherService.getAllVouchers());
+    public ResponseEntity<Page<Voucher>> getAll(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "isActive", required = false) Boolean isActive,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "6") int size) {
+
+        return ResponseEntity.ok(voucherService.getAllVouchers(keyword, type, isActive, page, size));
     }
 
     @PostMapping("/admin/add")

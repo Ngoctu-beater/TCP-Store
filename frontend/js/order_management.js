@@ -2,9 +2,11 @@ let currentPage = 0;
 const pageSize = 10;
 let currentSearch = "";
 let currentStatus = "";
+let currentStartDate = "";
+let currentEndDate = "";
 let baseUrl = AppConfig.ORDER_API_URL;
+
 if (!baseUrl) {
-  // Tự động tìm cổng 8084 (tùy server của bạn) và giữ lại /api
   const apiBase = AppConfig.BASE_URL.replace("8081", "8084");
   baseUrl = `${apiBase}/orders`;
 }
@@ -34,6 +36,29 @@ document.addEventListener("DOMContentLoaded", () => {
       loadOrders();
     });
   }
+
+  // Lắng nghe thay đổi bộ lọc ngày
+  const startDateInput = document.getElementById("filter-start-date");
+  const endDateInput = document.getElementById("filter-end-date");
+
+  if (startDateInput && endDateInput) {
+    const handleDateChange = () => {
+      currentStartDate = startDateInput.value;
+      currentEndDate = endDateInput.value;
+
+      // Kiểm tra nếu người dùng chọn "Từ ngày" lớn hơn "Đến ngày"
+      if (currentStartDate && currentEndDate && currentStartDate > currentEndDate) {
+        alert("'Từ ngày' không được lớn hơn 'Đến ngày'!");
+        return;
+      }
+
+      currentPage = 0; // Đưa về trang đầu tiên
+      loadOrders(); // Tải lại danh sách
+    };
+
+    startDateInput.addEventListener("change", handleDateChange);
+    endDateInput.addEventListener("change", handleDateChange);
+  }
 });
 
 // GỌI API LẤY DANH SÁCH
@@ -42,7 +67,7 @@ async function loadOrders() {
   tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8"><span class="material-symbols-outlined animate-spin text-primary">progress_activity</span> Đang tải dữ liệu...</td></tr>`;
 
   try {
-    const url = `${baseUrl}/orders/admin?keyword=${encodeURIComponent(currentSearch)}&status=${currentStatus}&page=${currentPage}&size=${pageSize}`;
+    const url = `${baseUrl}/orders/admin?keyword=${encodeURIComponent(currentSearch)}&status=${currentStatus}&startDate=${currentStartDate}&endDate=${currentEndDate}&page=${currentPage}&size=${pageSize}`;
 
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${AuthUtils.getToken()}` },
@@ -59,6 +84,7 @@ async function loadOrders() {
     tbody.innerHTML = `<tr><td colspan="7" class="text-center text-red-500 py-4">Lỗi kết nối máy chủ!</td></tr>`;
   }
 }
+
 async function loadOrderStatistics() {
     try {
         const url = `${AppConfig.ORDER_API_URL}/orders/admin/statistics`;
@@ -272,10 +298,10 @@ async function openOrderModal(orderCode, mode = "view") {
     document.getElementById("modal-order-status").value = order.orderStatus;
 
     // ==========================================
-    // LOGIC KHÓA CÁC TRẠNG THÁI NGƯỢC
+    // KHÓA CÁC TRẠNG THÁI NGƯỢC VÀ NHẢY CÓC
     // ==========================================
     if (isEdit) {
-      // Xử lý Select Trạng thái đơn hàng
+      // Xử lý Trạng thái đơn hàng
       const orderStatusSelect = document.getElementById("modal-order-status");
       const orderStatuses = [
         "PENDING",
@@ -287,37 +313,36 @@ async function openOrderModal(orderCode, mode = "view") {
       const currentOrderIdx = orderStatuses.indexOf(order.orderStatus);
 
       Array.from(orderStatusSelect.options).forEach((opt) => {
-        if (
-          order.orderStatus === "DELIVERED" ||
-          order.orderStatus === "CANCELLED"
-        ) {
+        if (order.orderStatus === "DELIVERED" || order.orderStatus === "CANCELLED") {
           // Nếu đã Hoàn thành/Hủy: Khóa TẤT CẢ các tùy chọn khác
           opt.disabled = opt.value !== order.orderStatus;
         } else {
           if (opt.value === "CANCELLED") {
             opt.disabled = false; // Luôn mở nút Hủy nếu đơn chưa chốt
+          } else if (opt.value === order.orderStatus) {
+            opt.disabled = false; // Luôn giữ lại trạng thái hiện tại
           } else {
-            // Khóa các trạng thái nằm trước trạng thái hiện tại
-            opt.disabled = orderStatuses.indexOf(opt.value) < currentOrderIdx;
+            // Chỉ cho phép chọn trạng thái liền kề phía sau
+            opt.disabled = orderStatuses.indexOf(opt.value) !== currentOrderIdx + 1;
           }
         }
       });
 
       // Xử lý Select Trạng thái thanh toán
-      const paymentStatusSelect = document.getElementById(
-        "modal-payment-status",
-      );
-      Array.from(paymentStatusSelect.options).forEach((opt) => {
-        if (order.paymentStatus === "PAID") {
-          // Nếu đã thanh toán: Khóa hết
-          opt.disabled = opt.value !== "PAID";
-        } else if (order.paymentStatus === "FAILED") {
-          // Nếu thất bại: Khóa tùy chọn quay lại Pending
-          opt.disabled = opt.value === "PENDING";
-        } else {
-          opt.disabled = false;
-        }
-      });
+      // const paymentStatusSelect = document.getElementById(
+      //   "modal-payment-status",
+      // );
+      // Array.from(paymentStatusSelect.options).forEach((opt) => {
+      //   if (order.paymentStatus === "PAID") {
+      //     // Nếu đã thanh toán: Khóa hết
+      //     opt.disabled = opt.value !== "PAID";
+      //   } else if (order.paymentStatus === "FAILED") {
+      //     // Nếu thất bại: Khóa tùy chọn quay lại Pending
+      //     opt.disabled = opt.value === "PENDING";
+      //   } else {
+      //     opt.disabled = false;
+      //   }
+      // });
     }
 
     // Đổ danh sách sản phẩm
@@ -386,7 +411,31 @@ async function saveOrderStatus() {
     UIUtils.setLoading(btn, false, "Lưu cập nhật");
   }
 }
+
 function changePage(dir) {
   currentPage += dir;
   loadOrders();
+}
+
+// HÀM XÓA BỘ LỌC
+function clearFilters() {
+    // Làm trống các ô nhập liệu trên giao diện
+    const searchInput = document.getElementById("search-order");
+    const statusSelect = document.getElementById("filter-status");
+    const startDateInput = document.getElementById("filter-start-date");
+    const endDateInput = document.getElementById("filter-end-date");
+
+    if (searchInput) searchInput.value = "";
+    if (statusSelect) statusSelect.value = "";
+    if (startDateInput) startDateInput.value = "";
+    if (endDateInput) endDateInput.value = "";
+
+    // Làm mới các biến toàn cục
+    currentSearch = "";
+    currentStatus = "";
+    currentStartDate = "";
+    currentEndDate = "";
+    currentPage = 0;
+
+    loadOrders();
 }

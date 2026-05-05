@@ -62,4 +62,11 @@ public class Voucher {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public Integer getUsedCount() {
+        if (this.usedCount == null) {
+            return 0;
+        }
+        return this.usedCount;
+    }
+
 }

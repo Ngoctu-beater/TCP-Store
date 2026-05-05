@@ -1,9 +1,14 @@
 package com.service.ordersservice.service;
 
+import com.service.ordersservice.enums.DiscountType;
 import com.service.ordersservice.model.Voucher;
 import com.service.ordersservice.repository.VoucherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,8 +19,21 @@ public class VoucherService {
     @Autowired
     private VoucherRepository voucherRepository;
 
-    public List<Voucher> getAllVouchers() {
-        return voucherRepository.findAll();
+    public Page<Voucher> getAllVouchers(String keyword, String typeStr, Boolean isActive, int page, int size) {
+        DiscountType type = null;
+        if (typeStr != null && !typeStr.trim().isEmpty()) {
+            try {
+                type = DiscountType.valueOf(typeStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+            }
+        }
+
+        String kw = (keyword != null && !keyword.trim().isEmpty()) ? keyword.trim() : null;
+
+        // Tạo đối tượng phân trang, sắp xếp theo ngày tạo giảm dần
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        return voucherRepository.searchVouchersForAdmin(kw, type, isActive, pageable);
     }
 
     public Voucher createVoucher(Voucher voucher) {

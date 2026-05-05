@@ -263,6 +263,7 @@ function renderProductCard(p, container) {
     style: "currency",
     currency: "VND",
   }).format(salePrice);
+  
   const basePriceFormatted = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
@@ -279,6 +280,10 @@ function renderProductCard(p, container) {
   const statusColor = isStock ? "text-emerald-500" : "text-red-500";
   const statusIcon = isStock ? "check_circle" : "cancel";
 
+  // Xử lý chuỗi tránh lỗi Javascript khi tên có dấu nháy ', "
+  const safeName = p.name ? p.name.replace(/'/g, "\\'").replace(/"/g, "&quot;") : "Sản phẩm";
+  const safeThumbnail = p.thumbnail || "https://placehold.co/400x300?text=No+Image";
+
   const card = document.createElement("div");
   card.className =
     "group relative flex flex-col gap-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1e2125] p-3 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500";
@@ -288,8 +293,8 @@ function renderProductCard(p, container) {
         <div class="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-[#f8f9fa] dark:bg-[#25282c]">
             <img 
                 alt="${p.name}" 
-                class="h-full w-full object-contain p-4 group-hover:scale-110 transition-transform duration-500 mix-blend-multiply dark:mix-blend-normal"
-                src="${p.thumbnail || "https://placehold.co/400x300?text=No+Image"}" 
+                class="h-full w-full object-contain p-4 group-hover:scale-110 transition-transform duration-500 mix-blend-multiply dark:mix-blend-normal cursor-pointer detail-trigger"
+                src="${safeThumbnail}" 
                 onerror="this.src='https://placehold.co/400x300?text=Error'"
             />
             <div class="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-white/95 dark:from-[#1e2125]/95 to-transparent">
@@ -304,10 +309,10 @@ function renderProductCard(p, container) {
                     Hết hàng
                    </button>`
             }
-        </div>
+            </div>
         </div>
         <div class="flex flex-col gap-1.5 flex-1">
-            <h3 class="font-bold text-xs leading-snug line-clamp-2 min-h-[2.2rem] group-hover:text-primary transition-colors cursor-pointer" title="${p.name}">
+            <h3 class="font-bold text-xs leading-snug line-clamp-2 min-h-[2.2rem] group-hover:text-primary transition-colors cursor-pointer detail-trigger" title="${p.name}">
                 ${p.name}
             </h3>
             <div class="mt-auto pt-2 border-t border-gray-50 dark:border-gray-800">
@@ -315,16 +320,27 @@ function renderProductCard(p, container) {
                     <span class="text-sale-red font-black text-sm md:text-base">${priceFormatted}</span>
                     ${basePrice > salePrice ? `<span class="text-gray-400 text-[10px] line-through font-normal">${basePriceFormatted}</span>` : ""}
                 </div>
-                <div class="flex items-center gap-1 mt-2 text-[10px] font-bold ${statusColor} uppercase tracking-tighter">
-                    <span class="material-symbols-outlined text-xs">${statusIcon}</span>
-                    ${statusText}
+                
+                <div class="flex items-center justify-between mt-2">
+                    <div class="flex items-center gap-1 text-[10px] font-bold ${statusColor} uppercase tracking-tighter">
+                        <span class="material-symbols-outlined text-xs">${statusIcon}</span>
+                        ${statusText}
+                    </div>
+                  
+                    <button onclick="addToCompare(${p.id}, '${safeName}', '${safeThumbnail}')" class="text-[10px] font-bold flex items-center gap-0.5 text-gray-500 hover:text-primary transition-colors bg-gray-50 px-2 py-1 rounded">
+                        <span class="material-symbols-outlined text-[14px]">add_circle</span> So sánh
+                    </button>
                 </div>
+                
             </div>
         </div>
       `;
 
-  card.querySelector("h3").addEventListener("click", () => {
-    window.location.href = `product_detail.html?id=${p.id}`;
+  // Gọi sự kiện click cho cả tiêu đề và hình ảnh
+  card.querySelectorAll(".detail-trigger").forEach(el => {
+      el.addEventListener("click", () => {
+          window.location.href = `product_detail.html?id=${p.id}`;
+      });
   });
 
   if (container) container.appendChild(card);

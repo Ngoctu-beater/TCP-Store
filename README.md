@@ -1,4 +1,4 @@
-**TuComputer Store - Hệ thống Thương mại Điện tử Microservices**
+**TuComputer Store - Hệ thống Thương mại điện tử**
 
 TuComputer Store là một dự án website bán thiết bị điện tử thông minh, được xây dựng trên kiến trúc Microservices hiện đại, đảm bảo khả năng mở rộng và hiệu năng cao.
 
@@ -28,7 +28,7 @@ Hệ thống bao gồm 4 dịch vụ cốt lõi và một giao diện người d
 
 - Đối với Khách hàng:
   
-  + Xem sản phẩm: Duyệt sản phẩm theo danh mục, tìm kiếm và xem chi tiết hiệu năng.
+  + Xem sản phẩm: Duyệt sản phẩm theo danh mục, tìm kiếm và xem chi tiết sản phẩm.
     
   + Quản lý giỏ hàng: Thêm/sửa/xóa sản phẩm trong giỏ.
   
@@ -38,7 +38,7 @@ Hệ thống bao gồm 4 dịch vụ cốt lõi và một giao diện người d
 
 - Đối với Quản trị viên (Admin):
   
-  + Dashboard: Thống kê doanh thu, số lượng đơn hàng và người dùng mới.
+  + Dashboard: Thống kê doanh thu, lợi nhuận...
     
   + Quản lý sản phẩm & danh mục: Thêm mới sản phẩm, cập nhật tồn kho và hình ảnh.
     

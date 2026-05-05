@@ -100,11 +100,24 @@ public class OrderService {
                 .productThumbnail(reqItem.getProductThumbnail())
                 .quantity(reqItem.getQuantity())
                 .unitPrice(reqItem.getUnitPrice())
+                // Lấy giá vốn, nếu null thì tạm tính bằng 70% giá bán
+                .costPrice(reqItem.getCostPrice() != null ? reqItem.getCostPrice() : reqItem.getUnitPrice().multiply(new BigDecimal("0.7")))
                 .totalPrice(reqItem.getUnitPrice().multiply(BigDecimal.valueOf(reqItem.getQuantity())))
                 .build()
         ).collect(Collectors.toList());
 
         order.setItems(items);
+
+        List<StockUpdateRequest> stockRequests = request.getItems().stream()
+                .map(item -> new StockUpdateRequest(item.getProductId(), item.getQuantity()))
+                .collect(Collectors.toList());
+
+        try {
+            // Nếu hết hàng, báo lỗi
+            productServiceClient.decreaseStock(stockRequests);
+        } catch (Exception e) {
+            throw new RuntimeException("Rất tiếc! Sản phẩm trong đơn đã hết hàng hoặc không đủ số lượng.");
+        }
 
         return orderRepository.save(order);
     }
@@ -251,8 +264,15 @@ public class OrderService {
                 throw new RuntimeException("Đơn hàng đã chốt (Hoàn thành/Đã hủy), không thể thay đổi trạng thái!");
             }
 
-            if (newStatus != OrderStatus.CANCELLED && newStatus.ordinal() < currentStatus.ordinal()) {
-                throw new RuntimeException("Lỗi nghiệp vụ: Không thể quay ngược trạng thái đơn hàng!");
+            if (newStatus != OrderStatus.CANCELLED) {
+                // Chặn quay ngược
+                if (newStatus.ordinal() < currentStatus.ordinal()) {
+                    throw new RuntimeException("Lỗi nghiệp vụ: Không thể quay ngược trạng thái đơn hàng!");
+                }
+                // Chặn nhảy cóc
+                if (newStatus.ordinal() > currentStatus.ordinal() + 1) {
+                    throw new RuntimeException("Lỗi nghiệp vụ: Không được nhảy cóc trạng thái đơn hàng!");
+                }
             }
 
             if (newStatus == OrderStatus.DELIVERED) {
@@ -289,7 +309,7 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Order> getAllOrdersForAdmin(String keyword, String statusStr, int page, int size) {
+    public Page<Order> getAllOrdersForAdmin(String keyword, String statusStr, String startDateStr, String endDateStr, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
         OrderStatus status = null;
@@ -300,7 +320,20 @@ public class OrderService {
             }
         }
 
-        return orderRepository.searchOrdersForAdmin(keyword, status, pageable);
+        // XỬ LÝ NGÀY THÁNG
+        LocalDateTime startDateTime = null;
+        LocalDateTime endDateTime = null;
+
+        if (startDateStr != null && !startDateStr.trim().isEmpty()) {
+            // Ép thành đầu ngày 00:00:00
+            startDateTime = LocalDate.parse(startDateStr).atStartOfDay();
+        }
+        if (endDateStr != null && !endDateStr.trim().isEmpty()) {
+            // Ép thành cuối ngày 23:59:59
+            endDateTime = LocalDate.parse(endDateStr).atTime(23, 59, 59);
+        }
+
+        return orderRepository.searchOrdersForAdmin(keyword, status, startDateTime, endDateTime, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -314,55 +347,92 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
-    public List<RevenueStatResponse> getRevenueStatistics(int days) {
-        LocalDateTime startDate = LocalDateTime.now().minusDays(days);
+    public List<RevenueStatResponse> getRevenueStatistics(String filter, String dateStr) {
+        TimeComparison t = getTimeComparison(filter, dateStr);
+        LocalDateTime startDate = t.currentStart;
+        LocalDateTime endDate = t.currentEnd;
 
         List<Order> orders = orderRepository.findAll().stream()
                 .filter(o -> o.getOrderStatus() == OrderStatus.DELIVERED)
-                .filter(o -> o.getCreatedAt().isAfter(startDate))
+                .filter(o -> !o.getCreatedAt().isBefore(startDate) && !o.getCreatedAt().isAfter(endDate))
                 .collect(Collectors.toList());
 
         Map<String, BigDecimal> dailyRevenue = new HashMap<>();
         Map<String, BigDecimal> dailyProfit = new HashMap<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM");
+        DateTimeFormatter formatter;
+
+        boolean isSingleDay = (dateStr != null && !dateStr.trim().isEmpty()) || "today".equalsIgnoreCase(filter);
+        boolean isYear = "year".equalsIgnoreCase(filter) && !isSingleDay;
+
+        // Tự động điều chỉnh định dạng nhãn trên biểu đồ theo thời gian
+        if (isSingleDay) {
+            formatter = DateTimeFormatter.ofPattern("HH:00");
+        } else if (isYear) {
+            formatter = DateTimeFormatter.ofPattern("MM/yyyy");
+        } else {
+            formatter = DateTimeFormatter.ofPattern("dd/MM");
+        }
 
         for (Order o : orders) {
-            String dateStr = o.getCreatedAt().format(formatter);
+            String label = o.getCreatedAt().format(formatter);
 
-            BigDecimal currentRev = dailyRevenue.getOrDefault(dateStr, BigDecimal.ZERO);
-            dailyRevenue.put(dateStr, currentRev.add(o.getTotalAmount()));
+            BigDecimal currentRev = dailyRevenue.getOrDefault(label, BigDecimal.ZERO);
+            dailyRevenue.put(label, currentRev.add(o.getTotalAmount()));
 
             BigDecimal totalCost = BigDecimal.ZERO;
             for(OrderItem item : o.getItems()) {
                 BigDecimal itemCost = item.getCostPrice() != null ? item.getCostPrice() : BigDecimal.ZERO;
-
-                totalCost = totalCost.add(itemCost);
+                // Nhân giá vốn với số lượng sản phẩm
+                totalCost = totalCost.add(itemCost.multiply(BigDecimal.valueOf(item.getQuantity())));
             }
 
             BigDecimal orderProfit = o.getTotalAmount().subtract(totalCost);
-
-            BigDecimal currentProf = dailyProfit.getOrDefault(dateStr, BigDecimal.ZERO);
-            dailyProfit.put(dateStr, currentProf.add(orderProfit));
+            BigDecimal currentProf = dailyProfit.getOrDefault(label, BigDecimal.ZERO);
+            dailyProfit.put(label, currentProf.add(orderProfit));
         }
 
         List<RevenueStatResponse> response = new ArrayList<>();
-        for (int i = days - 1; i >= 0; i--) {
-            String dateStr = LocalDateTime.now().minusDays(i).format(formatter);
 
-            response.add(RevenueStatResponse.builder()
-                    .date(dateStr)
-                    .revenue(dailyRevenue.getOrDefault(dateStr, BigDecimal.ZERO))
-                    .profit(dailyProfit.getOrDefault(dateStr, BigDecimal.ZERO))
-                    .build());
+        // Tạo các mốc thời gian trống để biểu đồ không bị gãy đoạn nếu có ngày/giờ không có đơn
+        if (isSingleDay) {
+            for (int i = 0; i <= 23; i++) {
+                String label = String.format("%02d:00", i);
+                response.add(RevenueStatResponse.builder()
+                        .date(label)
+                        .revenue(dailyRevenue.getOrDefault(label, BigDecimal.ZERO))
+                        .profit(dailyProfit.getOrDefault(label, BigDecimal.ZERO))
+                        .build());
+            }
+        } else if (isYear) {
+            for (int i = 1; i <= 12; i++) {
+                String label = String.format("%02d/%04d", i, startDate.getYear());
+                response.add(RevenueStatResponse.builder()
+                        .date(label)
+                        .revenue(dailyRevenue.getOrDefault(label, BigDecimal.ZERO))
+                        .profit(dailyProfit.getOrDefault(label, BigDecimal.ZERO))
+                        .build());
+            }
+        } else {
+            java.time.LocalDate curr = startDate.toLocalDate();
+            java.time.LocalDate end = endDate.toLocalDate();
+            while (!curr.isAfter(end)) {
+                String label = curr.format(DateTimeFormatter.ofPattern("dd/MM"));
+                response.add(RevenueStatResponse.builder()
+                        .date(label)
+                        .revenue(dailyRevenue.getOrDefault(label, BigDecimal.ZERO))
+                        .profit(dailyProfit.getOrDefault(label, BigDecimal.ZERO))
+                        .build());
+                curr = curr.plusDays(1);
+            }
         }
         return response;
     }
 
     @Transactional(readOnly = true)
-    public List<CategoryRevenueStatResponse> getCategoryRevenueStatistics(Integer days, String dateStr) {
-        LocalDateTime[] timeRange = calculateTimeRange(days, dateStr);
-        LocalDateTime startDate = timeRange[0];
-        LocalDateTime endDate = timeRange[1];
+    public List<CategoryRevenueStatResponse> getCategoryRevenueStatistics(String filter, String dateStr) {
+        TimeComparison t = getTimeComparison(filter, dateStr);
+        LocalDateTime startDate = t.currentStart;
+        LocalDateTime endDate = t.currentEnd;
 
         List<Order> deliveredOrders = orderRepository.findAll().stream()
                 .filter(o -> o.getOrderStatus() == OrderStatus.DELIVERED)
@@ -409,6 +479,7 @@ public class OrderService {
                 .sorted((a, b) -> b.getTotalRevenue().compareTo(a.getTotalRevenue()))
                 .collect(Collectors.toList());
     }
+
     @Transactional(readOnly = true)
     public DashboardStatResponse getDashboardStatistics(String filter, String dateStr) {
         TimeComparison t = getTimeComparison(filter, dateStr);
@@ -448,6 +519,7 @@ public class OrderService {
         double growth = ((current - prev) / prev) * 100;
         return Math.round(growth * 10.0) / 10.0;
     }
+
     private LocalDateTime[] calculateTimeRange(Integer days, String dateStr) {
         LocalDateTime start;
         LocalDateTime end = LocalDateTime.now();
@@ -464,6 +536,7 @@ public class OrderService {
         }
         return new LocalDateTime[]{start, end};
     }
+
     public static class TimeComparison {
         public java.time.LocalDateTime currentStart;
         public java.time.LocalDateTime currentEnd;
@@ -524,5 +597,59 @@ public class OrderService {
                 break;
         }
         return t;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, List<ProductStockResponse>> getInventoryReport() {
+        Map<String, List<ProductStockResponse>> report = new HashMap<>();
+
+        // Lấy top 5 sắp hết (tồn ít nhất - asc)
+        report.put("lowStock", productServiceClient.getProductsByStock("asc").stream()
+                .limit(5)
+                .collect(Collectors.toList()));
+
+        // Lấy top 5 tồn nhiều nhất (desc)
+        report.put("highStock", productServiceClient.getProductsByStock("desc").stream()
+                .limit(5)
+                .collect(Collectors.toList()));
+
+        return report;
+    }
+
+    // Sản phẩm bán chạy
+    @Transactional(readOnly = true)
+    public List<TopProductResponse> getTopSellingProducts(String filter, String dateStr) {
+        TimeComparison t = getTimeComparison(filter, dateStr);
+
+        List<Order> deliveredOrders = orderRepository.findAll().stream()
+                .filter(o -> o.getOrderStatus() == OrderStatus.DELIVERED)
+                .filter(o -> !o.getCreatedAt().isBefore(t.currentStart) && !o.getCreatedAt().isAfter(t.currentEnd))
+                .collect(Collectors.toList());
+
+        Map<Integer, TopProductResponse> productMap = new HashMap<>();
+
+        for (Order order : deliveredOrders) {
+            for (OrderItem item : order.getItems()) {
+                TopProductResponse stat = productMap.getOrDefault(item.getProductId(),
+                        TopProductResponse.builder()
+                                .productId(item.getProductId())
+                                .productName(item.getProductName())
+                                .thumbnail(item.getProductThumbnail())
+                                .totalQuantity(0)
+                                .totalRevenue(BigDecimal.ZERO)
+                                .build());
+
+                stat.setTotalQuantity(stat.getTotalQuantity() + item.getQuantity());
+                BigDecimal itemRev = item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
+                stat.setTotalRevenue(stat.getTotalRevenue().add(itemRev));
+
+                productMap.put(item.getProductId(), stat);
+            }
+        }
+
+        return productMap.values().stream()
+                .sorted((a, b) -> b.getTotalQuantity().compareTo(a.getTotalQuantity()))
+                .limit(5)
+                .collect(Collectors.toList());
     }
 }

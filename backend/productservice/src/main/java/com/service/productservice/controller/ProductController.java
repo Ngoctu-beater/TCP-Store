@@ -138,4 +138,21 @@ public class ProductController {
     public ResponseEntity<List<Map<String, Object>>> getRelatedProducts(@PathVariable Integer id) {
         return ResponseEntity.ok(productService.getRelatedProducts(id));
     }
+
+    @PreAuthorize("hasAuthority('ADMIN') or hasRole('ADMIN')")
+    @GetMapping("/admin/stock-report")
+    public ResponseEntity<List<ProductStockResponse>> getStockReport(
+            @RequestParam(value = "sort", defaultValue = "asc") String sortDir) {
+        return ResponseEntity.ok(productService.getStockReport(sortDir));
+    }
+
+    @GetMapping("/featured")
+    public ResponseEntity<List<ProductResponse>> getFeatured() {
+        return ResponseEntity.ok(productService.getFeaturedProducts());
+    }
+
+    @GetMapping("/top-selling")
+    public ResponseEntity<List<ProductResponse>> getTopSelling() {
+        return ResponseEntity.ok(productService.getTopSellingProductsPublic());
+    }
 }

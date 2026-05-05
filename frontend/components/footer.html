@@ -1,3 +1,102 @@
+<div
+  id="compare-bottom-modal"
+  class="fixed bottom-0 left-1/2 -translate-x-1/2 z-[100] w-full max-w-4xl bg-white shadow-[0_-10px_20px_rgba(0,0,0,0.1)] rounded-t-2xl border border-gray-200 p-4 transition-transform duration-300 translate-y-full hidden"
+>
+  <button
+    onclick="collapseCompare()"
+    class="absolute -top-3 right-4 bg-gray-100 hover:text-primary transition-colors rounded-full px-3 py-1 shadow text-xs font-bold flex items-center gap-1 border border-gray-200"
+  >
+    Thu gọn
+    <span class="material-symbols-outlined text-[16px]">expand_more</span>
+  </button>
+
+  <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+    <div
+      id="compare-slots-container"
+      class="flex justify-evenly gap-3 flex-1 h-[100px] overflow-x-auto w-full md:w-auto pb-2 md:pb-0"
+    ></div>
+
+    <div class="flex flex-col gap-2 shrink-0 w-full md:w-auto">
+      <button
+        id="btn-go-compare"
+        onclick="goToCompare()"
+        class="w-full bg-primary text-[#101818] py-2 rounded-lg font-bold shadow-sm hover:bg-primary-dark transition-colors text-sm"
+      >
+        So sánh ngay
+      </button>
+      <button
+        onclick="clearCompare()"
+        class="text-xs text-gray-500 hover:text-red-500 hover:underline font-semibold text-center"
+      >
+        Xóa tất cả sản phẩm
+      </button>
+    </div>
+  </div>
+</div>
+
+<button
+  id="compare-floating-bubble"
+  onclick="expandCompare()"
+  class="fixed bottom-2 left-1/2 -translate-x-1/2 z-[90] bg-white border-2 border-primary text-primary px-4 py-3 rounded-full shadow-xl flex items-center gap-2 font-bold hover:bg-primary hover:text-white transition-all hidden group"
+>
+  <span class="material-symbols-outlined text-[20px] group-hover:animate-spin"
+    >compare_arrows</span
+  >
+  So sánh (<span id="compare-bubble-count">0</span>)
+</button>
+
+<div
+  id="compare-search-modal"
+  class="fixed inset-0 z-[110] hidden bg-black/60 flex items-center justify-center backdrop-blur-sm transition-opacity"
+>
+  <div
+    class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[80vh] md:h-[600px] m-4 animate-[fadeIn_0.2s_ease-out]"
+  >
+    <div
+      class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/80"
+    >
+      <h3 class="text-lg font-black text-gray-900">Thêm sản phẩm so sánh</h3>
+      <button
+        onclick="closeCompareSearch()"
+        class="text-gray-400 hover:text-red-500 bg-white shadow-sm w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+      >
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+
+    <div
+      class="p-5 border-b border-gray-100 shadow-[0_4px_6px_-4px_rgba(0,0,0,0.05)] z-10"
+    >
+      <div class="relative">
+        <span
+          class="material-symbols-outlined absolute left-4 top-3 text-gray-400"
+          >search</span
+        >
+        <input
+          type="text"
+          id="compare-search-input"
+          oninput="debounceCompareSearch(event)"
+          placeholder="Gõ tên sản phẩm bạn muốn tìm..."
+          class="w-full h-12 pl-12 pr-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all outline-none"
+        />
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5 bg-white">
+      <div id="compare-search-results" class="flex flex-col gap-3">
+        <div
+          class="text-center text-gray-400 text-sm py-12 flex flex-col items-center"
+        >
+          <span class="material-symbols-outlined text-5xl mb-2 opacity-50"
+            >manage_search</span
+          >
+          Gõ tên sản phẩm để tìm kiếm...
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer class="bg-gray-800 text-gray-300">
   <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">

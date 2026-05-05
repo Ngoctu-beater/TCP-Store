@@ -48,7 +48,7 @@ public class User implements UserDetails {
     private LocalDate birthDate;
 
     @Column(name = "is_active")
-    @Builder.Default // Giá trị mặc định khi dùng Builder
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "created_at")
@@ -81,7 +81,6 @@ public class User implements UserDetails {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // --- Logic Spring Security ---
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()

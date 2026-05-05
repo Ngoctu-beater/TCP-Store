@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     searchInput.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         currentSearch = e.target.value.trim();
-        currentPage = 0; // Reset về trang đầu
+        currentPage = 0;
         loadCustomers();
       }
     });
@@ -30,7 +30,7 @@ async function loadCustomers() {
     });
 
     if (!response.ok) throw new Error("Lỗi tải danh sách");
-    const data = await response.json(); // Data này là dạng Page của Spring Boot
+    const data = await response.json();
 
     renderTable(data.content);
     renderPagination(data);
@@ -131,7 +131,7 @@ function renderPagination(pageData) {
     const end = Math.min(start + pageData.size - 1, pageData.totalElements);
     paginationInfo.innerText = `Hiển thị ${start}-${end} trong số ${pageData.totalElements} khách hàng`;
   }
-  // Gắn logic disable nút Trước/Sau dựa vào pageData.first và pageData.last
+  // Gắn logic disable nút Trước/Sau
   document.getElementById("btn-prev-page").disabled = pageData.first;
   document.getElementById("btn-next-page").disabled = pageData.last;
 }
@@ -159,9 +159,9 @@ async function loadCustomerStats() {
   }
 }
 
-// ==========================================
-// LOGIC XỬ LÝ XEM/SỬA CHI TIẾT KHÁCH HÀNG
-// ==========================================
+// =======================
+// XEM CHI TIẾT KHÁCH HÀNG
+// =======================
 
 let modalAvatarFile = null;
 let currentCustomerAvatar = "";

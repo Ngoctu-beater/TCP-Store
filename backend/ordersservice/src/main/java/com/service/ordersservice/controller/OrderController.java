@@ -1,9 +1,6 @@
 package com.service.ordersservice.controller;
 
-import com.service.ordersservice.dto.CategoryRevenueStatResponse;
-import com.service.ordersservice.dto.DashboardStatResponse;
-import com.service.ordersservice.dto.OrderRequest;
-import com.service.ordersservice.dto.RevenueStatResponse;
+import com.service.ordersservice.dto.*;
 import com.service.ordersservice.enums.OrderStatus;
 import com.service.ordersservice.enums.PaymentStatus;
 import com.service.ordersservice.model.Order;
@@ -15,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
@@ -31,13 +29,18 @@ public class OrderController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<Order> createOrder(
+    public ResponseEntity<?> createOrder(
             @RequestHeader("Authorization") String token,
             @RequestBody OrderRequest request) {
 
-        Integer userId = getUserId(token);
-        Order savedOrder = orderService.createOrder(userId, request);
-        return ResponseEntity.ok(savedOrder);
+        try {
+            Integer userId = getUserId(token);
+            Order savedOrder = orderService.createOrder(userId, request);
+            return ResponseEntity.ok(savedOrder);
+        } catch (RuntimeException e) {
+            // Bắt lỗi từ Service và trả về đúng câu thông báo (Plain text)
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping("/my-orders")
@@ -97,10 +100,12 @@ public class OrderController {
     public ResponseEntity<Page<Order>> getAllOrdersAdmin(
             @RequestParam(value = "keyword", defaultValue = "") String keyword,
             @RequestParam(value = "status", defaultValue = "") String status,
+            @RequestParam(value = "startDate", defaultValue = "") String startDate,
+            @RequestParam(value = "endDate", defaultValue = "") String endDate,
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
 
-        return ResponseEntity.ok(orderService.getAllOrdersForAdmin(keyword, status, page, size));
+        return ResponseEntity.ok(orderService.getAllOrdersForAdmin(keyword, status, startDate, endDate, page, size));
     }
 
     @PreAuthorize("hasAuthority('ADMIN') or hasRole('ADMIN')")
@@ -118,16 +123,17 @@ public class OrderController {
     @PreAuthorize("hasAuthority('ADMIN') or hasRole('ADMIN')")
     @GetMapping("/admin/statistics/revenue")
     public ResponseEntity<List<RevenueStatResponse>> getRevenueStatistics(
-            @RequestParam(value = "days", defaultValue = "7") int days) {
-        return ResponseEntity.ok(orderService.getRevenueStatistics(days));
+            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "date", required = false) String date) {
+        return ResponseEntity.ok(orderService.getRevenueStatistics(filter, date));
     }
 
     @PreAuthorize("hasAuthority('ADMIN') or hasRole('ADMIN')")
     @GetMapping("/admin/statistics/categories")
     public ResponseEntity<List<CategoryRevenueStatResponse>> getCategoryRevenueStatistics(
-            @RequestParam(value = "days", required = false) Integer days,
+            @RequestParam(value = "filter", required = false) String filter,
             @RequestParam(value = "date", required = false) String date) {
-        return ResponseEntity.ok(orderService.getCategoryRevenueStatistics(days, date));
+        return ResponseEntity.ok(orderService.getCategoryRevenueStatistics(filter, date));
     }
 
     @PreAuthorize("hasAuthority('ADMIN') or hasRole('ADMIN')")
@@ -136,5 +142,19 @@ public class OrderController {
             @RequestParam(value = "filter", required = false) String filter,
             @RequestParam(value = "date", required = false) String date) {
         return ResponseEntity.ok(orderService.getDashboardStatistics(filter, date));
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN') or hasRole('ADMIN')")
+    @GetMapping("/admin/statistics/inventory")
+    public ResponseEntity<Map<String, List<ProductStockResponse>>> getInventoryReport() {
+        return ResponseEntity.ok(orderService.getInventoryReport());
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN') or hasRole('ADMIN')")
+    @GetMapping("/admin/statistics/top-products")
+    public ResponseEntity<List<TopProductResponse>> getTopSellingProducts(
+            @RequestParam(value = "filter", required = false) String filter,
+            @RequestParam(value = "date", required = false) String date) {
+        return ResponseEntity.ok(orderService.getTopSellingProducts(filter, date));
     }
 }

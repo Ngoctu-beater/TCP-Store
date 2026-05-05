@@ -2,11 +2,13 @@ package com.service.productservice.service;
 
 import com.service.productservice.dto.CategoryAdminResponse;
 import com.service.productservice.dto.CategoryRequest;
+import com.service.productservice.dto.CategoryResponse;
 import com.service.productservice.dto.CategoryTreeResponse;
 import com.service.productservice.model.Category;
 import com.service.productservice.repository.CategoryRepository;
 import com.service.productservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -146,5 +148,14 @@ public class CategoryService {
 
         // Nếu tìm hết cấp mà vẫn không thấy thì trả về null
         return null;
+    }
+
+    public List<CategoryResponse> getFeaturedCategories() {
+        List<Category> categories = categoryRepository.findByIsFeaturedTrue(PageRequest.of(0, 6));
+
+        return categories.stream().map(c -> CategoryResponse.builder()
+                .id(c.getId())
+                .name(c.getName())
+                .build()).collect(Collectors.toList());
     }
 }

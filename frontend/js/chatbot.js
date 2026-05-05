@@ -1,15 +1,71 @@
 const CHAT_SESSION_KEY = "chat_history";
 let isChatHistoryLoaded = false;
 
+// TỰ ĐỘNG VẼ GIAO DIỆN
+document.addEventListener("DOMContentLoaded", () => {
+    // Kiểm tra xem thẻ body có cờ hiệu không
+    const shouldLoadChatbot = document.body.getAttribute("data-use-chatbot") === "true";
+    
+    // Nếu có cờ và chưa có chatbot nào trên trang, thì tự động nhúng vào
+    if (shouldLoadChatbot && !document.getElementById("chat-window")) {
+        injectChatbotUI();
+    }
+});
+
+function injectChatbotUI() {
+    const chatbotHTML = `
+        <button id="chat-toggle-btn" onclick="toggleChat()" class="fixed bottom-6 right-6 bg-primary text-[#101818] p-4 rounded-full shadow-lg hover:scale-110 transition-transform z-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+        </button>
+        <div id="chat-window" style="height: 500px" class="fixed bottom-6 right-6 w-80 md:w-96 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl flex flex-col hidden z-50 overflow-hidden">
+            <div class="bg-primary text-[#101818] p-4 flex justify-between items-center shrink-0">
+                <h3 class="font-bold">TCP Store Assistant</h3>
+                <button onclick="toggleChat()" class="text-[#101818] hover:text-white transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50 dark:bg-gray-800 text-sm min-h-0">
+                <div class="flex justify-start mb-4">
+                    <div class="message-content bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 p-3 rounded-br-lg rounded-tr-lg rounded-tl-lg max-w-[85%] break-words shadow-sm">
+                        Xin chào! TCP Store có thể giúp gì cho bạn?
+                    </div>
+                </div>
+            </div>
+            <div class="p-3 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex gap-2 shrink-0">
+                <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-primary dark:bg-gray-800 dark:text-white" onkeypress="handleKeyPress(event)" />
+                <button onclick="sendMessage()" class="bg-primary text-[#101818] px-4 py-2 rounded-lg font-bold hover:opacity-90">Gửi</button>
+            </div>
+        </div>
+    `;
+    const container = document.createElement("div");
+    container.innerHTML = chatbotHTML;
+    document.body.appendChild(container);
+}
+
+// ==========================================
+// 2. CÁC HÀM LOGIC XỬ LÝ CHATBOT
+// ==========================================
+
 // Đóng/Mở cửa sổ chat
 function toggleChat() {
   const chatWindow = document.getElementById("chat-window");
   const toggleBtn = document.getElementById("chat-toggle-btn");
+  const chatInput = document.getElementById("chat-input");
+
+  // Kiểm tra an toàn chống lỗi null
+  if (!chatWindow || !chatInput) {
+      console.warn("Chưa tải xong giao diện chatbot!");
+      return;
+  }
 
   if (chatWindow.classList.contains("hidden")) {
         chatWindow.classList.remove("hidden");
         toggleBtn.style.display = "none";
-        document.getElementById("chat-input").focus();
+        
+        // Đợi một chút để CSS chạy xong rồi mới focus
+        setTimeout(() => chatInput.focus(), 100);
         
         // Tải lịch sử khi mở chat lần đầu
         if (!isChatHistoryLoaded) {
@@ -27,8 +83,6 @@ function toggleChat() {
 // Tải lịch sử từ Session Storage
 function loadSessionHistory() {
     const history = JSON.parse(sessionStorage.getItem(CHAT_SESSION_KEY) || "[]");
-    const chatMessages = document.getElementById("chat-messages");
-
     if (history.length > 0) {
         history.forEach(msg => {
             if (msg.sender === "user") {
@@ -83,11 +137,7 @@ function escapeHTML(str) {
 
 function formatAIText(text) {
   if (!text) return "";
-  
-  // Mã hóa an toàn trước để chống XSS từ nguồn ngoài
   let safeText = escapeHTML(text);
-  
-  // Sau đó mới parse markdown
   return safeText
     .replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary">$1</strong>')
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
@@ -116,25 +166,16 @@ function generateProductCardsHtml(products) {
     })
     .join("");
 
-  // Chỉ hiển thị mũi tên nếu có nhiều hơn 1 sản phẩm
   const showArrows = products.length > 1;
 
-  // Nút cuộn trái
   const leftArrow = showArrows ? `
-    <button 
-      onclick="this.nextElementSibling.scrollBy({ left: -160, behavior: 'smooth' })"
-      class="absolute left-1 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-7 h-7 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full shadow-md border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 opacity-0 group-hover:opacity-100 hover:text-primary hover:scale-110 transition-all cursor-pointer"
-    >
+    <button onclick="this.nextElementSibling.scrollBy({ left: -160, behavior: 'smooth' })" class="absolute left-1 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-7 h-7 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full shadow-md border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 opacity-0 group-hover:opacity-100 hover:text-primary hover:scale-110 transition-all cursor-pointer">
       <span class="material-symbols-outlined text-[18px]">chevron_left</span>
     </button>
   ` : "";
 
-  // Nút cuộn phải
   const rightArrow = showArrows ? `
-    <button 
-      onclick="this.previousElementSibling.scrollBy({ left: 160, behavior: 'smooth' })"
-      class="absolute right-1 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-7 h-7 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full shadow-md border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 opacity-0 group-hover:opacity-100 hover:text-primary hover:scale-110 transition-all cursor-pointer"
-    >
+    <button onclick="this.previousElementSibling.scrollBy({ left: 160, behavior: 'smooth' })" class="absolute right-1 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center w-7 h-7 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full shadow-md border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 opacity-0 group-hover:opacity-100 hover:text-primary hover:scale-110 transition-all cursor-pointer">
       <span class="material-symbols-outlined text-[18px]">chevron_right</span>
     </button>
   ` : "";
@@ -142,11 +183,9 @@ function generateProductCardsHtml(products) {
   return `
     <div class="relative group flex items-center mt-3 w-full">
         ${leftArrow}
-        
         <div class="flex gap-2 overflow-x-auto hide-scrollbar scroll-smooth w-full pb-2">
             ${cardsHtml}
         </div>
-        
         ${rightArrow}
     </div>
   `;
@@ -160,24 +199,20 @@ async function sendMessage() {
 
   if (!message) return;
 
-  // Khóa ô nhập liệu
   inputEl.disabled = true;
   sendBtn.disabled = true;
   inputEl.classList.add("opacity-50", "cursor-not-allowed");
   sendBtn.classList.add("opacity-50", "cursor-not-allowed");
 
-  // In tin nhắn User
   appendMessage("user", message);
   saveToSession("user", message); 
   inputEl.value = "";
 
-  // In bong bóng chờ
   const typingId = appendMessage(
     "bot",
     '<span class="animate-pulse font-bold tracking-widest">...</span>'
   );
 
-  // Lây tên người dùng để gửi kèm
   const currentUserName = AuthUtils.getUserInfo(AppConfig.KEYS.FULL_NAME) || "";
 
   try {
@@ -194,16 +229,12 @@ async function sendMessage() {
       updateMessage(typingId, formattedReply, data.products);
       saveToSession("bot", formattedReply, data.products);
     } else {
-      updateMessage(
-        typingId,
-        "Xin lỗi, hệ thống đang bận. Bạn thử lại sau nhé."
-      );
+      updateMessage(typingId, "Xin lỗi, hệ thống đang bận. Bạn thử lại sau nhé.");
     }
   } catch (error) {
     console.error("Lỗi Chatbot:", error);
     updateMessage(typingId, "Lỗi kết nối đến máy chủ.");
   } finally {
-    // Mở khóa ô nhập liệu
     inputEl.disabled = false;
     sendBtn.disabled = false;
     inputEl.classList.remove("opacity-50", "cursor-not-allowed");
@@ -238,14 +269,9 @@ function updateMessage(id, newText, products = []) {
     const contentDiv = msgEl.querySelector(".message-content");
     if (contentDiv) {
       contentDiv.innerHTML = newText;
-
-      // NẾU CÓ SẢN PHẨM TRẢ VỀ -> VẼ THÊM XUỐNG DƯỚI BONG BÓNG
       if (products && products.length > 0) {
         const cardsHtml = generateProductCardsHtml(products);
-        msgEl.insertAdjacentHTML(
-          "beforeend",
-          `<div class="w-full max-w-[85%]">${cardsHtml}</div>`
-        );
+        msgEl.insertAdjacentHTML("beforeend", `<div class="w-full max-w-[85%]">${cardsHtml}</div>`);
       }
     }
     setTimeout(scrollToBottom, 50); 

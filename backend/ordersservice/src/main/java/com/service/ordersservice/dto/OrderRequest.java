@@ -25,5 +25,7 @@ public class OrderRequest {
         private String productThumbnail;
         private Integer quantity;
         private BigDecimal unitPrice;
+        private BigDecimal costPrice;
+
     }
 }

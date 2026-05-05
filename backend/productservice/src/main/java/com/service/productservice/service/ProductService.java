@@ -113,6 +113,7 @@ public class ProductService {
 
         return ProductResponse.builder()
                 .id(product.getId())
+                .categoryId(product.getCategory().getId())
                 .categoryName(product.getCategory().getName())
                 .sku(product.getSku())
                 .name(product.getName())
@@ -531,5 +532,34 @@ public class ProductService {
             map.put("stock", p.getStock());
             return map;
         }).toList();
+    }
+
+    // Thống kê sản phẩm
+    public List<ProductStockResponse> getStockReport(String sortDir) {
+        // Sắp xếp tăng dần (Sắp hết) hoặc giảm dần (Tồn nhiều)
+        Sort sort = "desc".equalsIgnoreCase(sortDir)
+                ? Sort.by("stock").descending()
+                : Sort.by("stock").ascending();
+
+        return productRepository.findAll(sort).stream()
+                .map(p -> ProductStockResponse.builder()
+                        .id(p.getId())
+                        .name(p.getName())
+                        .stock(p.getStock())
+                        .thumbnail(p.getThumbnail())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    // Sản Phẩm Nổi Bật
+    public List<ProductResponse> getFeaturedProducts() {
+        List<Product> products = productRepository.findByIsFeaturedTrue(PageRequest.of(0, 8));
+        return products.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    // API cho Sản Phẩm Bán Chạy
+    public List<ProductResponse> getTopSellingProductsPublic() {
+        List<Product> products = productRepository.findByOrderBySoldDesc(PageRequest.of(0, 4));
+        return products.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 }

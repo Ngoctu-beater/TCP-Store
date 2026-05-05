@@ -19,7 +19,11 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     Page<Product> findByCategory_IdIn(List<Integer> categoryIds, Pageable pageable);
 
     @Modifying
-    @Query("UPDATE Product p SET p.stock = p.stock - :quantity WHERE p.id = :productId AND p.stock >= :quantity")
+    @Query("UPDATE Product p SET p.stock = p.stock - :quantity, " +
+            "p.stockStatus = CASE WHEN (p.stock - :quantity) = 0 THEN 'OUT_OF_STOCK' ELSE p.stockStatus END " +
+            "WHERE p.id = :productId " +
+            "AND p.stock >= :quantity " +
+            "AND p.stockStatus != 'OUT_OF_STOCK'")
     int decreaseStock(@Param("productId") Integer productId, @Param("quantity") Integer quantity);
 
     @Modifying
@@ -58,4 +62,10 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     @Query(value = "SELECT * FROM products WHERE category_id = :categoryId AND id != :productId AND is_active = true ORDER BY RAND() LIMIT 10", nativeQuery = true)
     List<Product> findRelatedProducts(@Param("categoryId") Integer categoryId, @Param("productId") Integer productId);
+
+    // Sản Phẩm Nổi Bật
+    List<Product> findByIsFeaturedTrue(Pageable pageable);
+
+    // Sản Phẩm Bán Chạy: Sắp xếp theo số lượng đã bán
+    List<Product> findByOrderBySoldDesc(Pageable pageable);
 }

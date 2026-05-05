@@ -24,10 +24,11 @@ public interface UserRepository extends JpaRepository<User, Integer> {
             "OR LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR u.phoneNumber LIKE CONCAT('%', :keyword, '%'))")
     Page<User> searchCustomers(@Param("keyword") String keyword, Pageable pageable);
+
     long countByCreatedAtAfter(java.time.LocalDateTime dateTime);
     long countByCreatedAtBetween(java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
 
-    // Thống kê người dùng mới theo Role
+    // Thống kê người dùng mới
     @Query("SELECT COUNT(u) FROM User u JOIN u.roles r WHERE r.roleName = 'USER' AND u.createdAt BETWEEN :startDate AND :endDate")
     long countNewUsersByRoleAndDateRange(@Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate);
 }

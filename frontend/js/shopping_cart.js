@@ -97,20 +97,28 @@ function renderCartItems(items) {
             ? `<p class="text-xs text-orange-500 font-medium mt-1">Còn ${item.stock} sản phẩm</p>`
             : `<p class="text-xs text-red-500 font-medium mt-1">Hết hàng</p>`;
 
-
         const isMinQuantity = item.quantity <= 1;
         const isMaxQuantity = item.quantity >= item.stock;
 
+        const isOutOfStock = item.stock <= 0 || item.stockStatus === 'OUT_OF_STOCK';
+
+        const checkboxHtml = isOutOfStock
+            ? `<input type="checkbox" disabled title="Sản phẩm này đã hết hàng" 
+                  class="w-5 h-5 rounded border-gray-300 bg-gray-200 cursor-not-allowed opacity-50" />`
+            : `<input type="checkbox" ${item.isSelected ? "checked" : ""} 
+                  onchange="updateCartItem(${item.id}, null, this.checked)"
+                  class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary dark:bg-[#25282c] dark:border-gray-600 cursor-pointer" />`;
+
         return `
-        <div class="bg-white dark:bg-[#1e2125] rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm relative group hover:border-primary/30 transition-all duration-300">
+        <div class="bg-white dark:bg-[#1e2125] rounded-2xl p-6 border border-gray-100 dark:border-gray-800 shadow-sm relative group hover:border-primary/30 transition-all duration-300 ${isOutOfStock ? 'opacity-50 grayscale' : ''}">
             <button onclick="removeCartItem(${item.id})" class="absolute top-4 right-4 text-gray-400 hover:text-sale-red transition-colors p-2">
                 <span class="material-symbols-outlined">delete</span>
             </button>
             <div class="flex flex-row gap-4 sm:gap-6 items-center sm:items-start">
                 <div class="shrink-0 flex items-center self-center sm:self-center h-full">
-                    <input type="checkbox" ${item.isSelected ? "checked" : ""} 
-                        onchange="updateCartItem(${item.id}, null, this.checked)"
-                        class="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary dark:bg-[#25282c] dark:border-gray-600 cursor-pointer" />
+                    
+                    ${checkboxHtml}
+                    
                 </div>
                 <div class="flex flex-col sm:flex-row gap-6 flex-1">
                     <div class="w-full sm:w-32 aspect-square bg-[#f8fcfc] dark:bg-[#25282c] rounded-xl flex items-center justify-center p-2 shrink-0">
@@ -243,7 +251,7 @@ async function toggleSelectAll(isSelected) {
     } catch (error) { console.error("Lỗi chọn tất cả:", error); }
 }
 
-// LOGIC MÃ GIẢM GIÁ
+// MÃ GIẢM GIÁ
 // Lấy danh sách mã đang hiển thị
 async function loadAvailableVouchers() {
     try {
@@ -545,7 +553,6 @@ async function placeOrder() {
 
             if (typeof HeaderLogic !== "undefined") HeaderLogic.updateCartBadge();
 
-            // Trích xuất mã đơn hàng
             let finalOrderCode = orderData.orderCode || orderData.order_code;
             if (!finalOrderCode && orderData.data) {
                 finalOrderCode = orderData.data.orderCode || orderData.data.order_code;
@@ -559,7 +566,7 @@ async function placeOrder() {
             window.location.href = `payment_success.html?orderCode=${finalOrderCode}`;
         } else {
             const errorText = await response.text();
-            alert("Lỗi đặt hàng: " + errorText);
+            alert(errorText);
         }
     } catch (error) {
         console.error("Lỗi:", error);

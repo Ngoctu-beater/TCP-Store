@@ -165,10 +165,7 @@ function changePage(dir) {
   loadProducts();
 }
 
-// ==========================================
-// LOGIC THÊM / SỬA / XÓA SẢN PHẨM
-// ==========================================
-
+// THÊM / SỬA / XÓA SẢN PHẨM
 async function openProductModal(id = null) {
   document.getElementById("product-modal").classList.remove("hidden");
   document.getElementById("product-form").reset();
@@ -331,9 +328,7 @@ document
     }
   });
 
-// ==========================================
 // ẢNH CHI TIẾT & MÀU SẮC
-// ==========================================
 function addDetailImageRow(existingUrl = "") {
   const container = document.getElementById("detail-images-container");
   const rowId = Date.now() + Math.random();
@@ -379,9 +374,7 @@ function addColorRow(name = "", imgUrl = "") {
   container.appendChild(div);
 }
 
-// ==========================================
 // THÔNG SỐ KỸ THUẬT
-// ==========================================
 let allCategoriesAdmin = []; // Biến toàn cục lưu cache danh mục
 
 async function loadCategoriesForFilter() {
@@ -467,9 +460,7 @@ function handleCategoryChange(existingSpecs = null) {
   }
 }
 
-// ==========================================
 // MỞ MODAL & LƯU SẢN PHẨM
-// ==========================================
 async function openProductModal(id = null) {
   document.getElementById("product-modal").classList.remove("hidden");
   document.getElementById("product-form").reset();

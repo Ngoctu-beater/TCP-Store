@@ -1,4 +1,4 @@
-let currentFilterQuery = "?days=30";
+let currentFilterQuery = "?filter=month";
 
 document.addEventListener("DOMContentLoaded", function () {
   initFilterLogic();
@@ -9,6 +9,8 @@ function reloadAllStats() {
   renderDashboardStats(currentFilterQuery);
   renderRevenueChart(currentFilterQuery);
   renderCategoryChart(currentFilterQuery);
+  loadTopSelling(currentFilterQuery);
+  loadInventoryStats();
 }
 
 async function renderRevenueChart(queryStr = "") {
@@ -108,9 +110,9 @@ async function renderRevenueChart(queryStr = "") {
             ticks: {
               // Định dạng số hiển thị ở trục Y
               callback: function (value) {
-                if (value >= 1000000) {
+                if (value <= -1000000 || value >= 1000000) {
                   return value / 1000000 + " Tr";
-                } else if (value >= 1000) {
+                } else if (value <= -1000 || value >= 1000) {
                   return value / 1000 + " K";
                 }
                 return value;
@@ -390,5 +392,92 @@ function updateGrowthUI(elementId, growthValue) {
   } else {
     el.classList.add("text-gray-600", "bg-gray-100");
     el.innerText = "0%";
+  }
+}
+
+// Top Bán Chạy
+async function loadTopSelling(queryStr = "") {
+  const container = document.getElementById('top-selling-body');
+  if (!container) return;
+
+  try {
+      const token = AuthUtils.getToken();
+      const res = await fetch(`${AppConfig.ORDER_API_URL}/orders/admin/statistics/top-products${queryStr}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      
+      if (data.length === 0) {
+          container.innerHTML = `<tr><td class="p-4 text-center text-gray-400">Chưa có dữ liệu bán hàng</td></tr>`;
+          return;
+      }
+
+      container.innerHTML = data.map((p, index) => `
+          <tr class="border-b border-gray-50 hover:bg-gray-50">
+              <td class="p-3 pl-4 font-bold text-gray-400 w-8">${index + 1}</td>
+              <td class="p-3 w-16">
+                  <img src="${p.thumbnail || 'https://placehold.co/200'}" class="w-14 h-14 object-contain bg-white border border-gray-200 rounded-lg shadow-sm">
+              </td>
+              <td class="p-3">
+                  <div class="font-medium text-gray-800 line-clamp-2" title="${p.productName}">${p.productName}</div>
+                  <div class="text-[12px] text-gray-500 mt-1">Đã bán: <strong class="text-green-600">${p.totalQuantity}</strong> cái</div>
+              </td>
+              <td class="p-3 pr-4 text-right font-bold text-primary whitespace-nowrap">${UIUtils.formatCurrency(p.totalRevenue)}</td>
+          </tr>
+      `).join('');
+  } catch (e) { 
+      console.error("Lỗi load Top Selling:", e); 
+      container.innerHTML = `<tr><td class="p-4 text-center text-red-400">Lỗi kết nối</td></tr>`;
+  }
+}
+
+// Sắp hết & Tồn nhiều
+async function loadInventoryStats() {
+  const lowContainer = document.getElementById('low-stock-body');
+  const highContainer = document.getElementById('high-stock-body');
+  if (!lowContainer || !highContainer) return;
+
+  try {
+      const token = AuthUtils.getToken();
+      const res = await fetch(`${AppConfig.ORDER_API_URL}/orders/admin/statistics/inventory`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+
+      // Render Bảng Sắp hết hàng
+      if(data.lowStock && data.lowStock.length > 0) {
+        lowContainer.innerHTML = data.lowStock.map(p => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50">
+                <td class="p-3 w-16">
+                    <img src="${p.thumbnail || 'https://placehold.co/200'}" class="w-14 h-14 object-contain bg-white border border-gray-200 rounded-lg shadow-sm">
+                </td>
+                <td class="p-3">
+                    <div class="font-medium text-gray-800 line-clamp-2" title="${p.name}">${p.name}</div>
+                </td>
+                <td class="p-3 pr-4 text-right whitespace-nowrap">
+                    <span class="px-2.5 py-1 bg-red-50 text-red-600 border border-red-100 rounded-lg text-xs font-bold">${p.stock} cái</span>
+                </td>
+            </tr>
+        `).join('');
+      }
+
+      // Render Bảng Tồn kho nhiều
+      if(data.highStock && data.highStock.length > 0) {
+        highContainer.innerHTML = data.highStock.map(p => `
+            <tr class="border-b border-gray-50 hover:bg-gray-50">
+                <td class="p-3 w-16">
+                    <img src="${p.thumbnail || 'https://placehold.co/200'}" class="w-14 h-14 object-contain bg-white border border-gray-200 rounded-lg shadow-sm">
+                </td>
+                <td class="p-3">
+                    <div class="font-medium text-gray-800 line-clamp-2" title="${p.name}">${p.name}</div>
+                </td>
+                <td class="p-3 pr-4 text-right whitespace-nowrap">
+                    <span class="px-2.5 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-lg text-xs font-bold">${p.stock} cái</span>
+                </td>
+            </tr>
+        `).join('');
+      }
+  } catch (e) { 
+      console.error("Lỗi tải dữ liệu:", e); 
   }
 }

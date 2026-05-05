@@ -2,6 +2,7 @@ package com.service.ordersservice.service;
 
 import com.service.ordersservice.dto.ProductCategoryInfoResponse;
 import com.service.ordersservice.dto.ProductResponse;
+import com.service.ordersservice.dto.ProductStockResponse;
 import com.service.ordersservice.dto.StockUpdateRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,6 +68,17 @@ public class ProductServiceClient {
             return response != null ? Arrays.asList(response) : Collections.emptyList();
         } catch (Exception e) {
             System.err.println("Lỗi khi lấy thông tin danh mục từ ProductService: " + e.getMessage());
+            return Collections.emptyList();
+        }
+    }
+
+    public List<ProductStockResponse> getProductsByStock(String sortDir) {
+        try {
+            String url = productServiceUrl + "/admin/stock-report?sort=" + sortDir;
+            ProductStockResponse[] response = restTemplate.getForObject(url, ProductStockResponse[].class);
+            return response != null ? Arrays.asList(response) : Collections.emptyList();
+        } catch (Exception e) {
+            e.printStackTrace();
             return Collections.emptyList();
         }
     }

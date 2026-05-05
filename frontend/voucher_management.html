@@ -109,6 +109,54 @@
             </div>
 
             <div
+              class="bg-surface-light p-4 rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between"
+            >
+              <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                <!-- Tìm kiếm theo mã -->
+                <div class="relative w-full sm:w-56">
+                  <span
+                    class="material-symbols-outlined absolute left-2.5 top-2 text-[#637588] text-[20px]"
+                    >search</span
+                  >
+                  <input
+                    id="filter-keyword"
+                    type="text"
+                    placeholder="Tìm theo mã voucher..."
+                    class="h-9 pl-9 pr-4 rounded-lg border border-[#e5e7eb] bg-[#f9fafb] text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-full"
+                  />
+                </div>
+
+                <!-- Lọc theo loại giảm giá -->
+                <select
+                  id="filter-type"
+                  class="h-9 pl-3 pr-8 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-[#111417]"
+                >
+                  <option value="">Tất cả loại giảm</option>
+                  <option value="PERCENTAGE">Phần trăm (%)</option>
+                  <option value="FIXED_AMOUNT">Số tiền (VNĐ)</option>
+                </select>
+
+                <!-- Lọc theo trạng thái -->
+                <select
+                  id="filter-isActive"
+                  class="h-9 pl-3 pr-8 rounded-lg border border-[#e5e7eb] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-[#111417]"
+                >
+                  <option value="">Tất cả trạng thái</option>
+                  <option value="true">Đang hoạt động</option>
+                  <option value="false">Đã khóa</option>
+                </select>
+              </div>
+
+              <!-- Nút Xóa bộ lọc -->
+              <button
+                onclick="clearVoucherFilters()"
+                class="text-sm text-primary font-bold hover:underline whitespace-nowrap"
+              >
+                Xóa bộ lọc
+              </button>
+            </div>
+
+            <div
               class="bg-surface-light rounded-xl border border-[#e5e7eb] shadow-sm flex flex-col overflow-hidden"
             >
               <div class="overflow-x-auto">
@@ -162,6 +210,35 @@
                     class="divide-y divide-[#e5e7eb]"
                   ></tbody>
                 </table>
+              </div>
+
+              <!-- PHÂN TRANG -->
+              <div
+                class="p-4 border-t border-[#e5e7eb] flex items-center justify-between bg-white"
+              >
+                <p id="voucher-pagination-info" class="text-sm text-[#637588]">
+                  Đang tải dữ liệu...
+                </p>
+                <div class="flex gap-2">
+                  <button
+                    id="btn-voucher-prev"
+                    onclick="changeVoucherPage(-1)"
+                    class="h-8 px-3 rounded border border-[#e5e7eb] bg-white text-[#637588] hover:bg-[#f9fafb] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >chevron_left</span
+                    >
+                  </button>
+                  <button
+                    id="btn-voucher-next"
+                    onclick="changeVoucherPage(1)"
+                    class="h-8 px-3 rounded border border-[#e5e7eb] bg-white text-[#637588] hover:bg-[#f9fafb] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span class="material-symbols-outlined text-[18px]"
+                      >chevron_right</span
+                    >
+                  </button>
+                </div>
               </div>
             </div>
           </div>

@@ -1,6 +1,41 @@
+let currentKeyword = "";
+let currentType = "";
+let currentIsActive = "";
+let currentVoucherPage = 0;
+const voucherPageSize = 6;
+
 document.addEventListener("DOMContentLoaded", () => {
   AuthUtils.requireAdmin();
   loadVouchers();
+
+    // Bắt sự kiện Enter ở ô tìm kiếm
+    const searchInput = document.getElementById("filter-keyword");
+    if (searchInput) {
+        searchInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                currentKeyword = e.target.value.trim();
+                loadVouchers();
+            }
+        });
+    }
+
+    // Bắt sự kiện đổi Loại giảm
+    const typeSelect = document.getElementById("filter-type");
+    if (typeSelect) {
+        typeSelect.addEventListener("change", (e) => {
+            currentType = e.target.value;
+            loadVouchers();
+        });
+    }
+
+    // Bắt sự kiện đổi Trạng thái
+    const activeSelect = document.getElementById("filter-isActive");
+    if (activeSelect) {
+        activeSelect.addEventListener("change", (e) => {
+            currentIsActive = e.target.value;
+            loadVouchers();
+        });
+    }
 });
 
 function toggleMaxDiscountField() {
@@ -20,16 +55,18 @@ function toggleMaxDiscountField() {
 
 async function loadVouchers() {
   try {
-    const res = await fetch(`${AppConfig.ORDER_API_URL}/vouchers/admin/all`, {
+    const res = await fetch(`${AppConfig.ORDER_API_URL}/vouchers/admin/all?keyword=${encodeURIComponent(currentKeyword)}&type=${currentType}&isActive=${currentIsActive}&page=${currentVoucherPage}&size=${voucherPageSize}`, {
       headers: { Authorization: `Bearer ${AuthUtils.getToken()}` },
     });
     if (!res.ok) throw new Error("Lỗi tải dữ liệu");
 
-    const vouchers = await res.json();
+    const pageData = await res.json(); 
     const tbody = document.getElementById("voucher-table-body");
+    const vouchers = pageData.content;
 
     if (vouchers.length === 0) {
       tbody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-gray-500">Chưa có mã giảm giá nào.</td></tr>`;
+      renderVoucherPagination(pageData);
       return;
     }
 
@@ -75,6 +112,8 @@ async function loadVouchers() {
             `;
       })
       .join("");
+
+      renderVoucherPagination(pageData);
   } catch (e) {
     console.error(e);
   }
@@ -232,6 +271,7 @@ async function deleteVoucher(id) {
     console.error(e);
   }
 }
+
 // Lấy thời gian hiện tại
 function getCurrentLocalISOString() {
   const date = new Date();
@@ -256,4 +296,39 @@ function handleStartDateChange() {
     // Nếu xóa trắng Ngày bắt đầu, Ngày kết thúc chỉ bị giới hạn bởi thời điểm hiện tại
     endInput.min = getCurrentLocalISOString();
   }
+}
+
+// Hàm làm mới bộ lọc
+window.clearVoucherFilters = function() {
+    document.getElementById("filter-keyword").value = "";
+    document.getElementById("filter-type").value = "";
+    document.getElementById("filter-isActive").value = "";
+    
+    currentKeyword = "";
+    currentType = "";
+    currentIsActive = "";
+    
+    loadVouchers();
+}
+
+// HÀM VẼ THANH PHÂN TRANG
+function renderVoucherPagination(pageData) {
+    const info = document.getElementById("voucher-pagination-info");
+    if (info) {
+        if (pageData.totalElements === 0) {
+            info.innerHTML = `Không có dữ liệu`;
+        } else {
+            const start = pageData.pageable.offset + 1;
+            const end = Math.min(start + pageData.size - 1, pageData.totalElements);
+            info.innerHTML = `Hiển thị <span class="font-bold text-[#111417]">${start}-${end}</span> trong <span class="font-bold text-[#111417]">${pageData.totalElements}</span> mã giảm giá`;
+        }
+    }
+
+    document.getElementById("btn-voucher-prev").disabled = pageData.first;
+    document.getElementById("btn-voucher-next").disabled = pageData.last;
+}
+
+function changeVoucherPage(direction) {
+    currentVoucherPage += direction;
+    loadVouchers();
 }
