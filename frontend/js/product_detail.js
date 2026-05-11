@@ -412,7 +412,7 @@ const generateStarsHTML = (rating, isSmall = false) => {
 async function loadProductReviews(productId) {
   try {
     const response = await fetch(
-      `http://localhost:8082/api/products/${productId}/reviews`,
+      `${AppConfig.PRODUCT_API_URL}/products/${productId}/reviews`,
     );
     if (!response.ok) throw new Error("Lỗi tải đánh giá");
 

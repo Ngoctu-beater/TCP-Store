@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      # C?u h�nh CORS ?? Front-end kh�ng b? ch?n
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+      routes:
+        # Chuy?n h??ng ??n Account Service
+        - id: accountservice
+          uri: http://localhost:8081 # Thay b?ng http://localhost:8081 n?u b?n ch?y th? tr�n m�y c� nh�n kh�ng d�ng Docker
+          predicates:
+            - Path=/api/auth/**, /api/users/**, /api/addresses/**
+          filters:
+            - AuthenticationFilter
+
+        # Chuy?n h??ng ??n Product Service
+        - id: productservice
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/products/**, /api/categories/**, /api/chat/**
+          filters:
+            - AuthenticationFilter
+
+        # Chuy?n h??ng ??n Shopping Cart Service
+        - id: shoppingcartservice
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/cart/**
+          filters:
+            - AuthenticationFilter
+
+        # Chuy?n h??ng ??n Order Service
+        - id: ordersservice
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/orders/**, /api/vouchers/**
+          filters:
+            - AuthenticationFilter
