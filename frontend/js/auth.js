@@ -1,3 +1,6 @@
+// Biến toàn cục để lưu email khi chuyển giữa các form
+let currentEmail = "";
+
 async function handleAuthSuccess(token, isRemember) {
   if (!token) return alert("Lỗi token!");
   const decoded = AuthUtils.parseJwt(token);
@@ -97,13 +100,13 @@ async function handleRegister() {
     return;
   }
 
-  if (password.length < 8) {
-    alert("Mật khẩu phải có ít nhất 8 ký tự!");
+  if (password.length < 6) {
+    alert("Mật khẩu phải có ít nhất 6 ký tự!");
     document.getElementById("reg-password").focus();
     return;
   }
 
-  UIUtils.setLoading(btnRegister, true, "Đang tạo...");
+  UIUtils.setLoading(btnRegister, true, "Đang gửi mã...");
 
   try {
     const res = await fetch(`${AppConfig.BASE_URL}/auth/register`, {
@@ -115,8 +118,14 @@ async function handleRegister() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Đăng ký thất bại");
 
-    alert("Đăng ký thành công! Đang đăng nhập...");
-    await handleAuthSuccess(data.token, false);
+    // LƯU LẠI EMAIL VÀ CHUYỂN SANG MÀN HÌNH NHẬP OTP
+    currentEmail = email;
+    document.getElementById("verify-email-display").innerText = email;
+    
+    document.getElementById("auth-main-section").classList.add("hidden");
+    document.getElementById("verify-section").classList.remove("hidden");
+    
+    alert("Mã xác thực đã được gửi đến email của bạn!");
   } catch (err) {
     alert(err.message);
   } finally {
@@ -169,4 +178,97 @@ function toggleRegisterButton() {
       "opacity-70",
     );
   }
+}
+
+// --- XÁC THỰC OTP ĐĂNG KÝ ---
+async function handleVerifyOTP() {
+  const code = document.getElementById("verify-code").value.trim();
+  const btnVerify = document.getElementById("btn-verify");
+
+  if (!code || code.length !== 6) return alert("Vui lòng nhập đúng 6 số OTP!");
+
+  UIUtils.setLoading(btnVerify, true, "Đang kiểm tra...");
+  try {
+    const res = await fetch(`${AppConfig.BASE_URL}/auth/verify-register?email=${encodeURIComponent(currentEmail)}&code=${encodeURIComponent(code)}`, {
+      method: "POST"
+    });
+    
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Xác thực thất bại");
+
+    alert("Xác thực thành công! Hệ thống đang đăng nhập...");
+    await handleAuthSuccess(data.token, false);
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    UIUtils.setLoading(btnVerify, false, "Xác nhận");
+  }
+}
+
+// --- GỬI YÊU CẦU QUÊN MẬT KHẨU ---
+async function handleForgotPassword() {
+  const email = document.getElementById("forgot-email").value.trim();
+  const btnForgot = document.getElementById("btn-forgot");
+
+  if (!email) return alert("Vui lòng nhập email!");
+
+  UIUtils.setLoading(btnForgot, true, "Đang gửi...");
+  try {
+    const res = await fetch(`${AppConfig.BASE_URL}/auth/forgot-password?email=${encodeURIComponent(email)}`, {
+      method: "POST"
+    });
+    const msg = await res.text();
+    if (!res.ok) throw new Error(msg || "Lỗi gửi yêu cầu");
+
+    currentEmail = email;
+    alert("Mã khôi phục đã được gửi vào email của bạn!");
+    
+    // Chuyển sang form nhập OTP và mật khẩu mới
+    document.getElementById("forgot-password-section").classList.add("hidden");
+    document.getElementById("reset-password-section").classList.remove("hidden");
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    UIUtils.setLoading(btnForgot, false, "Gửi mã khôi phục");
+  }
+}
+
+// --- ĐẶT LẠI MẬT KHẨU MỚI ---
+async function handleResetPassword() {
+  const code = document.getElementById("reset-code").value.trim();
+  const newPassword = document.getElementById("reset-new-password").value.trim();
+  const btnReset = document.getElementById("btn-reset");
+
+  if (!code || !newPassword) return alert("Vui lòng nhập đầy đủ mã OTP và mật khẩu mới!");
+
+  UIUtils.setLoading(btnReset, true, "Đang xử lý...");
+  try {
+    const res = await fetch(`${AppConfig.BASE_URL}/auth/reset-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: currentEmail, code: code, password: newPassword })
+    });
+    const msg = await res.text();
+    if (!res.ok) throw new Error(msg || "Lỗi đặt lại mật khẩu");
+
+    alert("Đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+    showMainAuth(); // Quay về màn hình đăng nhập
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    UIUtils.setLoading(btnReset, false, "Đổi mật khẩu");
+  }
+}
+
+// --- CÁC HÀM HIỂN THỊ GIAO DIỆN CHUYỂN FORM ---
+function showMainAuth() {
+  document.getElementById("verify-section").classList.add("hidden");
+  document.getElementById("forgot-password-section").classList.add("hidden");
+  document.getElementById("reset-password-section").classList.add("hidden");
+  document.getElementById("auth-main-section").classList.remove("hidden");
+}
+
+function showForgotPasswordForm() {
+  document.getElementById("auth-main-section").classList.add("hidden");
+  document.getElementById("forgot-password-section").classList.remove("hidden");
 }

@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+      routes:
+        - id: accountservice
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/auth/**,/api/users/**,/api/addresses/**
+          filters:
+            - AuthenticationFilter
+
+        - id: productservice
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/products/**,/api/categories/**,/api/chat/**
+          filters:
+            - AuthenticationFilter
+
+        - id: shoppingcartservice
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/cart/**
+          filters:
+            - AuthenticationFilter
+
+        # ROUTE ĐÃ SỬA: Gộp chung và xóa dấu cách trong Path
+        - id: ordersservice
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/orders/**,/api/vouchers/**
+          filters:
+            - AuthenticationFilter
+        - id: payos-callback
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/payment/payos/** # Dấu ** này bao gồm cả /return và /cancel

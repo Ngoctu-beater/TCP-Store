@@ -5,6 +5,7 @@ import com.service.ordersservice.enums.OrderStatus;
 import com.service.ordersservice.enums.PaymentStatus;
 import com.service.ordersservice.model.Order;
 import com.service.ordersservice.service.OrderService;
+import com.service.ordersservice.service.PayOSService; // Thêm thư viện PayOSService
 import com.service.ordersservice.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -12,17 +13,19 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class OrderController {
+
     private final OrderService orderService;
     private final JwtUtil jwtUtil;
+
+    // Inject PayOSService vào đây
+    private final PayOSService payOSService;
 
     private Integer getUserId(String token) {
         return jwtUtil.extractUserId(token.replace("Bearer ", ""));
@@ -38,8 +41,43 @@ public class OrderController {
             Order savedOrder = orderService.createOrder(userId, request);
             return ResponseEntity.ok(savedOrder);
         } catch (RuntimeException e) {
-            // Bắt lỗi từ Service và trả về đúng câu thông báo (Plain text)
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // ==========================================
+    // TÍCH HỢP PAYOS - API TẠO LINK THANH TOÁN
+    // ==========================================
+    @PostMapping("/{orderCode}/generate-payos-link")
+    public ResponseEntity<?> generatePayosLink(@PathVariable("orderCode") String orderCode) {
+        try {
+            // Lấy thông tin đơn hàng hiện tại
+            Order order = orderService.getOrderByCode(orderCode);
+
+            // Do PayOS bắt buộc orderCode phải là số nguyên, ta dùng ID của đơn hàng
+            long numericOrderCode = order.getId();
+            long amount = order.getTotalAmount().longValue(); // Tổng tiền cần thanh toán
+
+            // Gọi PayOSService để sinh link
+            String paymentLink = payOSService.createPaymentLinkForMicroservice(orderCode, numericOrderCode, amount);
+
+            // Trả về thẳng đường link dưới dạng chữ (String)
+            return ResponseEntity.ok(paymentLink);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi sinh link PayOS: " + e.getMessage());
+        }
+    }
+
+    // ==========================================
+    // API XÓA CỨNG ĐƠN HÀNG (KHI HỦY THANH TOÁN)
+    // ==========================================
+    @DeleteMapping("/{orderCode}")
+    public ResponseEntity<?> deleteOrder(@PathVariable("orderCode") String orderCode) {
+        try {
+            orderService.deleteOrderByCode(orderCode);
+            return ResponseEntity.ok("Đã hủy và xóa đơn hàng thành công");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Lỗi xóa đơn: " + e.getMessage());
         }
     }
 
@@ -56,12 +94,9 @@ public class OrderController {
             @RequestHeader("Authorization") String token,
             @PathVariable("orderCode") String orderCode) {
 
-        // Đảm bảo user đã đăng nhập hợp lệ
         Integer userId = getUserId(token);
-
         Order order = orderService.getOrderByCode(orderCode);
 
-        // Kiểm tra xem đơn hàng này có đúng là của user đang đăng nhập không
         if (!order.getUserId().equals(userId)) {
             return ResponseEntity.status(403).build();
         }

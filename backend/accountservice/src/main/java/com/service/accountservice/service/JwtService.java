@@ -22,7 +22,7 @@ public class JwtService {
     private String secretKey;
 
     // =============================================================
-    // PHẦN 1: CÁC HÀM GIẢI MÃ (Dùng cho Filter kiểm tra Token)
+    // CÁC HÀM GIẢI MÃ (Dùng cho Filter kiểm tra Token)
     // =============================================================
 
     // 1. Trích xuất Username (Email) từ Token

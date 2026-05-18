@@ -7,10 +7,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="shoppingcartservice" />
+        <module name="apigateway" />
         <module name="accountservice" />
         <module name="ordersservice" />
-        <module name="productservice" />
       </profile>
       <profile name="Annotation profile for shoppingcartservice" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -20,6 +19,8 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
+        <module name="shoppingcartservice" />
+        <module name="productservice" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -31,6 +32,7 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="accountservice" options="-parameters" />
       <module name="api-gateway" options="-parameters" />
+      <module name="apigateway" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="ordersservice" options="-parameters" />
       <module name="productservice" options="-parameters" />

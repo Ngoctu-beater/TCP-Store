@@ -7,10 +7,9 @@ import com.service.accountservice.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -26,5 +25,23 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    // Xác thực đăng ký
+    @PostMapping("/verify-register")
+    public ResponseEntity<?> verify(@RequestParam String email, @RequestParam String code) {
+        return ResponseEntity.ok(authService.verifyRegister(email, code));
+    }
+
+    // Khôi phục mật khẩu
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgot(@RequestParam String email) {
+        return ResponseEntity.ok(authService.forgotPassword(email));
+    }
+
+    // Đặt lại mật khẩu
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> reset(@RequestBody Map<String, String> req) {
+        return ResponseEntity.ok(authService.resetPassword(req.get("email"), req.get("code"), req.get("password")));
     }
 }

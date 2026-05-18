@@ -14,7 +14,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class ReviewController {
     private final ReviewService reviewService;
     private final JwtUtil jwtUtil;

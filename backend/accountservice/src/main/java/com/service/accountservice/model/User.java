@@ -57,6 +57,18 @@ public class User implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "verification_code")
+    private String verificationCode;
+
+    @Column(name = "reset_password_code")
+    private String resetPasswordCode;
+
+    @Column(name = "code_expiry")
+    private LocalDateTime codeExpiry;
+
+    @Column(name = "is_verified")
+    private boolean isVerified = false; // Mặc định chưa xác thực
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserAddress> addresses = new ArrayList<>();
 

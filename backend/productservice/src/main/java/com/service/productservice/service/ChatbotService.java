@@ -1,5 +1,7 @@
 package com.service.productservice.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.service.productservice.model.Product;
 import com.service.productservice.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +19,6 @@ import java.util.Map;
 
 @Service
 public class ChatbotService {
-    @Autowired
-    private ProductService productService;
 
     @Autowired
     private ProductRepository productRepository;
@@ -30,185 +30,151 @@ public class ChatbotService {
     private String apiUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public Map<String, Object> processMessage(String userMessage, String userName) {
         Map<String, Object> finalResult = new HashMap<>();
+        String customerName = (userName != null && !userName.trim().isEmpty()) ? userName : "bạn";
 
         try {
-            // Lọc từ khóa
-            String keyword = extractKeyword(userMessage);
-            Double[] priceRange = extractPriceRange(userMessage);
+            // ==========================================
+            // PHA 1: NHỜ GEMINI PHÂN TÍCH Ý ĐỊNH (JSON)
+            // ==========================================
+            String intentPrompt = """
+                Bạn là AI phân tích dữ liệu mua sắm. Phân tích tin nhắn và trả về DUY NHẤT một chuỗi JSON hợp lệ. KHÔNG dùng markdown.
+                Định dạng: {"action": "SEARCH" hoặc "CHAT", "keyword": "tên SP/hãng/loại ngắn gọn", "minPrice": số, "maxPrice": số}
+                Quy tắc:
+                - minPrice mặc định là 0. maxPrice mặc định là 999999999.
+                - Quy đổi "củ", "triệu", "tr" thành số thực (VND). Ví dụ "15 củ" -> 15000000.
+                - Nếu khách chào hỏi, than vãn -> action: CHAT, keyword: "".
+                Tin nhắn khách: "%s"
+                """.formatted(userMessage);
 
-            Double minPrice = 0.0;
-            Double maxPrice = 999999999.0;
+            String intentJsonString = callGemini(intentPrompt);
+            intentJsonString = cleanJsonString(intentJsonString); // Làm sạch markdown nếu AI lỡ sinh ra
 
-            if (priceRange != null) {
-                minPrice = priceRange[0];
-                maxPrice = priceRange[1];
-                keyword = keyword.replaceAll("triệu|tr|củ|đến|dưới|hơn|khoảng|tầm", "").trim();
-            }
+            // Đọc JSON AI trả về
+            JsonNode intentData = objectMapper.readTree(intentJsonString);
+            String action = intentData.path("action").asText("CHAT");
+            String keyword = intentData.path("keyword").asText("");
+            Double minPrice = intentData.path("minPrice").asDouble(0.0);
+            Double maxPrice = intentData.path("maxPrice").asDouble(999999999.0);
 
+            // ==========================================
+            // PHA 2: TÌM KIẾM TRONG DATABASE (Nếu là SEARCH)
+            // ==========================================
             List<Product> suggestedProducts = new ArrayList<>();
+            if ("SEARCH".equals(action) && !keyword.isEmpty()) {
+                suggestedProducts = productRepository.findTop5ForChatbot(keyword, minPrice, maxPrice);
 
-            suggestedProducts = productRepository.findTop5ForChatbot(keyword, minPrice, maxPrice);
-
-            if (suggestedProducts.isEmpty() && keyword.contains(" ")) {
-                String[] words = keyword.split(" ");
-                for (int i = words.length - 1; i >= 0; i--) {
-                    String singleWord = words[i].trim();
-                    if (singleWord.length() > 2) {
-                        suggestedProducts = productRepository.findTop5ForChatbot(singleWord, minPrice, maxPrice);
-                        if (!suggestedProducts.isEmpty()) break;
+                // Fallback thông minh: Nếu cụm từ khóa dài quá không có, cắt từ cuối (thường là tên hãng) ra tìm
+                if (suggestedProducts.isEmpty() && keyword.contains(" ")) {
+                    String[] words = keyword.split(" ");
+                    for (int i = words.length - 1; i >= 0; i--) {
+                        if (words[i].length() > 2) {
+                            suggestedProducts = productRepository.findTop5ForChatbot(words[i], minPrice, maxPrice);
+                            if (!suggestedProducts.isEmpty()) break;
+                        }
                     }
                 }
+            } else if ("SEARCH".equals(action) && keyword.isEmpty() && minPrice < maxPrice) {
+                // Khách chỉ nói giá (VD: "có máy nào dưới 15 củ ko")
+                suggestedProducts = productRepository.findTop5ForChatbot("", minPrice, maxPrice);
             }
 
-            // Tạo ngữ cảnh cho AI
-            StringBuilder context = new StringBuilder();
-            if (suggestedProducts.isEmpty()) {
-                context.append("[Khách đang chào hỏi hoặc không tìm thấy sản phẩm. Hãy giao tiếp tự nhiên]");
+            // ==========================================
+            // PHA 3: NHỜ GEMINI TRẢ LỜI TỰ NHIÊN
+            // ==========================================
+            StringBuilder contextPrompt = new StringBuilder();
+            contextPrompt.append("Bạn là nhân viên tư vấn vui vẻ, thân thiện của TCP Store. Tên khách hàng: ").append(customerName).append(".\n");
+
+            if ("CHAT".equals(action)) {
+                contextPrompt.append("Khách đang trò chuyện hoặc chào hỏi. Hãy nói chuyện duyên dáng, thân thiện như một người bạn.\n");
             } else {
-                context.append("DỮ LIỆU TỒN KHO:\n");
-                for (Product p : suggestedProducts) {
-                    context.append("- Tên: ").append(p.getName())
-                            .append(" | Giá: ").append(p.getSalePrice()).append("đ\n");
+                if (suggestedProducts.isEmpty()) {
+                    contextPrompt.append("Hệ thống ĐÃ HẾT HÀNG hoặc KHÔNG TÌM THẤY sản phẩm theo yêu cầu (Từ khóa: '").append(keyword).append("', Giá: ").append(String.format("%,.0f", minPrice)).append(" - ").append(String.format("%,.0f", maxPrice)).append(").\n");
+                    contextPrompt.append("Hãy xin lỗi nhẹ nhàng, chân thành và mời khách xem các dòng sản phẩm khác.\n");
+                } else {
+                    contextPrompt.append("DANH SÁCH SẢN PHẨM KHỚP YÊU CẦU ĐANG CÓ TẠI KHO:\n");
+                    for (Product p : suggestedProducts) {
+                        contextPrompt.append("- ").append(p.getName()).append(" | Giá: ").append(String.format("%,.0f", p.getSalePrice())).append("đ\n");
+                    }
+                    contextPrompt.append("Hãy tư vấn nhiệt tình dựa DUY NHẤT vào danh sách trên. Báo giá rõ ràng.\n");
                 }
             }
 
-            // Ngữ cảnh xưng hô
-            String greetingContext;
-            if (userName != null && !userName.trim().isEmpty()) {
-                greetingContext = "Tên khách hàng là: " + userName + ". Hãy dùng tên này để xưng hô thật thân thiện.";
-            } else {
-                greetingContext = "Khách hàng chưa đăng nhập. Hãy xưng hô là 'bạn'.";
+            contextPrompt.append("\nQUY TẮC PHẢN HỒI:\n")
+                    .append("1. Trả lời bằng tiếng Việt, tự nhiên, dùng emoji.\n")
+                    .append("2. Ngắn gọn (tối đa 3-4 câu).\n")
+                    .append("3. KHÔNG TỰ BỊA SẢN PHẨM nêú danh sách trống.\n")
+                    .append("\nTIN NHẮN KHÁCH: ").append(userMessage);
+
+            // Sinh câu trả lời cuối cùng
+            String finalReply = callGemini(contextPrompt.toString());
+            finalResult.put("reply", finalReply);
+
+            // ==========================================
+            // ĐÍNH KÈM SẢN PHẨM VÀO GIAO DIỆN
+            // ==========================================
+            List<Map<String, Object>> productPayload = new ArrayList<>();
+            if ("SEARCH".equals(action) && !suggestedProducts.isEmpty()) {
+                productPayload = suggestedProducts.stream().map(p -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id", p.getId());
+                    m.put("name", p.getName());
+                    m.put("salePrice", p.getSalePrice());
+                    m.put("thumbnail", p.getThumbnail());
+                    return m;
+                }).toList();
             }
+            finalResult.put("products", productPayload);
 
-            // Gọi Gemini
-            String systemPrompt = """
-                Bạn là một trợ lý AI thông minh, vui vẻ và vô cùng thân thiện của cửa hàng công nghệ TCP Store.
-                Bạn có cảm xúc và cách nói chuyện tự nhiên như con người.
-                
-                THÔNG TIN KHÁCH HÀNG (BẮT BUỘC DÙNG ĐỂ XƯNG HÔ):
-                %s
+        } catch (Exception e) {
+            e.printStackTrace();
+            finalResult.put("reply", "Hệ thống não bộ của TCP Store đang khởi động lại một chút. Bạn chờ mình giây lát rồi nhắn lại nhé! 😅");
+            finalResult.put("products", new ArrayList<>());
+        }
 
-                DỮ LIỆU TỪ HỆ THỐNG:
-                %s
+        return finalResult;
+    }
 
-                QUY TẮC ỨNG XỬ BẮT BUỘC:
-                1. NẾU KHÁCH HỎI MUA HÀNG:
-                   - Hãy dùng DỮ LIỆU TỪ HỆ THỐNG ở trên để tư vấn tối đa 1-2 sản phẩm.
-                   - Báo giá rõ ràng, nêu ưu điểm ngắn gọn.
-
-                2. NẾU KHÁCH CHỈ TRÒ CHUYỆN, TÂM SỰ (ví dụ: than buồn, hỏi thời tiết, trêu đùa, chào hỏi...):
-                   - KHÔNG tư vấn sản phẩm nếu khách chưa có nhu cầu.
-                   - Hãy trò chuyện lại một cách tự nhiên, duyên dáng, thấu cảm như một người bạn.
-                   - Khéo léo giữ hình tượng là nhân viên của TCP Store (ví dụ: "Hôm nay TCP Store thấy trời khá nóng, bạn nhớ uống nhiều nước nha!").
-
-                3. NGUYÊN TẮC CHUNG:
-                   - Trả lời ngắn gọn 2-3 câu giống như đang nhắn tin Zalo/Messenger.
-                   - Nếu khách hỏi những chủ đề nhạy cảm (chính trị, bạo lực), hãy khéo léo bẻ lái câu chuyện sang chủ đề khác cho vui vẻ. 
-
-                CÂU HỎI / TIN NHẮN CỦA KHÁCH: %s
-                """.formatted(greetingContext, context.toString(), userMessage);
-
-            // Gửi API Gemini
+    // --- HÀM GỌI API GEMINI DÙNG CHUNG ---
+    private String callGemini(String prompt) {
+        try {
+            String fullUrl = apiUrl + apiKey;
             Map<String, Object> requestBody = Map.of(
-                    "contents", List.of(Map.of("parts", List.of(Map.of("text", systemPrompt))))
+                    "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt))))
             );
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
-            String fullUrl = apiUrl + apiKey;
             Map<String, Object> response = restTemplate.postForObject(fullUrl, request, Map.class);
 
-            String aiReply = "Hệ thống đang bận, bạn đợi xíu nhé!";
             if (response != null && response.containsKey("candidates")) {
                 List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
-                aiReply = (String) ((List<Map<String, Object>>) ((Map<String, Object>) candidates.get(0).get("content")).get("parts")).get(0).get("text");
+                Map<String, Object> content = (Map<String, Object>) candidates.get(0).get("content");
+                List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+                return (String) parts.get(0).get("text");
             }
-
-            finalResult.put("reply", aiReply);
-
-            List<Map<String, Object>> safeProducts = suggestedProducts.stream().map(p -> {
-                Map<String, Object> map = new HashMap<>();
-                map.put("id", p.getId());
-                map.put("name", p.getName());
-                map.put("salePrice", p.getSalePrice());
-
-                map.put("thumbnail", p.getThumbnail());
-                return map;
-            }).toList();
-
-            finalResult.put("products", safeProducts);
-            return finalResult;
-
         } catch (Exception e) {
-            e.printStackTrace();
-            finalResult.put("reply", "Xin lỗi bạn, kết nối dữ liệu đang gặp sự cố ạ.");
-            finalResult.put("products", new ArrayList<>());
-            return finalResult;
+            System.err.println("Lỗi gọi API Gemini: " + e.getMessage());
         }
+        return "{}"; // Trả về JSON rỗng nếu lỗi để hệ thống không sập
     }
 
-    // Hàm hỗ trợ lọc từ khóa
-    private String extractKeyword(String message) {
-        if (message == null) return "";
-        String text = " " + message.toLowerCase().replaceAll("[,.!?]", " ") + " ";
-        String[] stopWords = {
-                " tôi ", " mình ", " tớ ", " shop ", " bạn ", " ad ", " admin ",
-                " muốn ", " cần ", " tìm ", " mua ", " xem ", " lấy ", " tư vấn ",
-                " có ", " không ", " nào ", " cho ", " hỏi ", " nhé ", " ạ ", " ơi ",
-                " dòng ", " loại ", " máy ", " cái ", " con ", " chiếc ", " tầm ", " giá ", " khoảng "
-        };
-        for (String word : stopWords) {
-            text = text.replace(word, " ");
+    // --- HÀM LÀM SẠCH CHUỖI JSON ---
+    private String cleanJsonString(String rawString) {
+        String cleanString = rawString.trim();
+        if (cleanString.startsWith("```json")) {
+            cleanString = cleanString.substring(7);
+        } else if (cleanString.startsWith("```")) {
+            cleanString = cleanString.substring(3);
         }
-        return text.trim().replaceAll("\\s+", " ");
-    }
-
-    // Nhận diện mức giá
-    private Double[] extractPriceRange(String message) {
-        String lowerMsg = message.toLowerCase();
-        Double minPrice = 0.0;
-        Double maxPrice = Double.MAX_VALUE;
-        boolean found = false;
-
-        // 15 đến 20 triệu, 15 - 20 tr
-        java.util.regex.Pattern p1 = java.util.regex.Pattern.compile("(\\d+)\\s*(đến|tới|-)\\s*(\\d+)\\s*(triệu|tr|củ)");
-        java.util.regex.Matcher m1 = p1.matcher(lowerMsg);
-        if (m1.find()) {
-            minPrice = Double.parseDouble(m1.group(1)) * 1000000;
-            maxPrice = Double.parseDouble(m1.group(3)) * 1000000;
-            return new Double[]{minPrice, maxPrice};
+        if (cleanString.endsWith("```")) {
+            cleanString = cleanString.substring(0, cleanString.length() - 3);
         }
-
-        // dưới 15 triệu, tối đa 15tr
-        java.util.regex.Pattern p2 = java.util.regex.Pattern.compile("(dưới|tối đa|nhỏ hơn|khoảng dưới)\\s*(\\d+)\\s*(triệu|tr|củ)");
-        java.util.regex.Matcher m2 = p2.matcher(lowerMsg);
-        if (m2.find()) {
-            maxPrice = Double.parseDouble(m2.group(2)) * 1000000;
-            return new Double[]{0.0, maxPrice};
-        }
-
-        // trên 15 triệu, hơn 15 củ
-        java.util.regex.Pattern p3 = java.util.regex.Pattern.compile("(trên|hơn|tối thiểu)\\s*(\\d+)\\s*(triệu|tr|củ)");
-        java.util.regex.Matcher m3 = p3.matcher(lowerMsg);
-        if (m3.find()) {
-            minPrice = Double.parseDouble(m3.group(2)) * 1000000;
-            return new Double[]{minPrice, Double.MAX_VALUE};
-        }
-
-        // tầm 15 triệu, khoảng 15tr
-        java.util.regex.Pattern p4 = java.util.regex.Pattern.compile("(tầm|khoảng|mức)\\s*(\\d+)\\s*(triệu|tr|củ)");
-        java.util.regex.Matcher m4 = p4.matcher(lowerMsg);
-        if (m4.find()) {
-            Double basePrice = Double.parseDouble(m4.group(2)) * 1000000;
-            minPrice = Math.max(0, basePrice - 2000000);
-            maxPrice = basePrice + 2000000;
-            return new Double[]{minPrice, maxPrice};
-        }
-
-        return null;
+        return cleanString.trim();
     }
 }

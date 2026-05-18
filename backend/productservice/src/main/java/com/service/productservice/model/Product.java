@@ -34,6 +34,7 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "thumbnail", columnDefinition = "LONGTEXT")
     private String thumbnail;
 
     @Column(name = "sale_price", precision = 15, scale = 2)

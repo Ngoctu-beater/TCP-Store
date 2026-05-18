@@ -6,10 +6,6 @@ let currentStartDate = "";
 let currentEndDate = "";
 let baseUrl = AppConfig.ORDER_API_URL;
 
-if (!baseUrl) {
-  const apiBase = AppConfig.BASE_URL.replace("8081", "8084");
-  baseUrl = `${apiBase}/orders`;
-}
 
 document.addEventListener("DOMContentLoaded", () => {
   loadOrders();

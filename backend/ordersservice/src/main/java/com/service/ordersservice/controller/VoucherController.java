@@ -4,7 +4,6 @@ import com.service.ordersservice.model.Voucher;
 import com.service.ordersservice.service.OrderService;
 import com.service.ordersservice.service.VoucherService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +15,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/vouchers")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class VoucherController {
     private final VoucherService voucherService;
     private final OrderService orderService;

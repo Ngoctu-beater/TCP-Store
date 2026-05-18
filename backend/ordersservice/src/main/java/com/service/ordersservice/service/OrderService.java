@@ -217,8 +217,7 @@ public class OrderService {
                 return orderById.get();
             }
         } catch (NumberFormatException e) {
-            // Nếu không phải là số (VD: "TCPS-260219-A7K4"), nó sẽ văng lỗi Parse,
-            // ta bỏ qua lỗi này để chạy tiếp xuống hàm tìm theo mã OrderCode bên dưới.
+            // Nếu không phải là số, tìm theo OrderCode
         }
 
         // Nếu không phải ID, thì tìm theo OrderCode
@@ -352,8 +351,9 @@ public class OrderService {
         LocalDateTime startDate = t.currentStart;
         LocalDateTime endDate = t.currentEnd;
 
+        // CẬP NHẬT: Chấp nhận đơn đã PAID hoặc đã DELIVERED
         List<Order> orders = orderRepository.findAll().stream()
-                .filter(o -> o.getOrderStatus() == OrderStatus.DELIVERED)
+                .filter(o -> o.getPaymentStatus() == PaymentStatus.PAID || o.getOrderStatus() == OrderStatus.DELIVERED)
                 .filter(o -> !o.getCreatedAt().isBefore(startDate) && !o.getCreatedAt().isAfter(endDate))
                 .collect(Collectors.toList());
 
@@ -364,7 +364,6 @@ public class OrderService {
         boolean isSingleDay = (dateStr != null && !dateStr.trim().isEmpty()) || "today".equalsIgnoreCase(filter);
         boolean isYear = "year".equalsIgnoreCase(filter) && !isSingleDay;
 
-        // Tự động điều chỉnh định dạng nhãn trên biểu đồ theo thời gian
         if (isSingleDay) {
             formatter = DateTimeFormatter.ofPattern("HH:00");
         } else if (isYear) {
@@ -382,7 +381,6 @@ public class OrderService {
             BigDecimal totalCost = BigDecimal.ZERO;
             for(OrderItem item : o.getItems()) {
                 BigDecimal itemCost = item.getCostPrice() != null ? item.getCostPrice() : BigDecimal.ZERO;
-                // Nhân giá vốn với số lượng sản phẩm
                 totalCost = totalCost.add(itemCost.multiply(BigDecimal.valueOf(item.getQuantity())));
             }
 
@@ -392,8 +390,6 @@ public class OrderService {
         }
 
         List<RevenueStatResponse> response = new ArrayList<>();
-
-        // Tạo các mốc thời gian trống để biểu đồ không bị gãy đoạn nếu có ngày/giờ không có đơn
         if (isSingleDay) {
             for (int i = 0; i <= 23; i++) {
                 String label = String.format("%02d:00", i);
@@ -434,16 +430,17 @@ public class OrderService {
         LocalDateTime startDate = t.currentStart;
         LocalDateTime endDate = t.currentEnd;
 
-        List<Order> deliveredOrders = orderRepository.findAll().stream()
-                .filter(o -> o.getOrderStatus() == OrderStatus.DELIVERED)
+        // CẬP NHẬT: Thống kê theo danh mục cho các đơn đã PAID hoặc DELIVERED
+        List<Order> validOrders = orderRepository.findAll().stream()
+                .filter(o -> o.getPaymentStatus() == PaymentStatus.PAID || o.getOrderStatus() == OrderStatus.DELIVERED)
                 .filter(o -> !o.getCreatedAt().isBefore(startDate) && !o.getCreatedAt().isAfter(endDate))
                 .collect(Collectors.toList());
 
-        if (deliveredOrders.isEmpty()) {
+        if (validOrders.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<Integer> productIds = deliveredOrders.stream()
+        List<Integer> productIds = validOrders.stream()
                 .flatMap(order -> order.getItems().stream())
                 .map(OrderItem::getProductId)
                 .distinct()
@@ -455,7 +452,7 @@ public class OrderService {
 
         Map<String, CategoryRevenueStatResponse> statMap = new HashMap<>();
 
-        for (Order order : deliveredOrders) {
+        for (Order order : validOrders) {
             for (OrderItem item : order.getItems()) {
                 String catName = productToCategoryMap.getOrDefault(item.getProductId(), "Khác");
 
@@ -467,10 +464,8 @@ public class OrderService {
                                 .build());
 
                 stat.setTotalSold(stat.getTotalSold() + item.getQuantity());
-
                 BigDecimal itemRevenue = item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity()));
                 stat.setTotalRevenue(stat.getTotalRevenue().add(itemRevenue));
-
                 statMap.put(catName, stat);
             }
         }
@@ -493,14 +488,24 @@ public class OrderService {
                 .collect(Collectors.toList());
 
         long totalOrders = currentOrders.size();
-        BigDecimal netRevenue = currentOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.DELIVERED)
-                .map(Order::getTotalAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // CẬP NHẬT: Tính doanh thu thuần từ đơn PAID hoặc DELIVERED cho kỳ hiện tại
+        BigDecimal netRevenue = currentOrders.stream()
+                .filter(o -> o.getPaymentStatus() == PaymentStatus.PAID || o.getOrderStatus() == OrderStatus.DELIVERED)
+                .map(Order::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         long cancelled = currentOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.CANCELLED).count();
         double cancelRate = totalOrders == 0 ? 0 : (double) cancelled / totalOrders * 100;
 
         long prevTotalOrders = prevOrders.size();
-        BigDecimal prevNetRevenue = prevOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.DELIVERED)
-                .map(Order::getTotalAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // CẬP NHẬT: Tính doanh thu thuần từ đơn PAID hoặc DELIVERED cho kỳ trước
+        BigDecimal prevNetRevenue = prevOrders.stream()
+                .filter(o -> o.getPaymentStatus() == PaymentStatus.PAID || o.getOrderStatus() == OrderStatus.DELIVERED)
+                .map(Order::getTotalAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         long prevCancelled = prevOrders.stream().filter(o -> o.getOrderStatus() == OrderStatus.CANCELLED).count();
         double prevCancelRate = prevTotalOrders == 0 ? 0 : (double) prevCancelled / prevTotalOrders * 100;
 
@@ -621,14 +626,15 @@ public class OrderService {
     public List<TopProductResponse> getTopSellingProducts(String filter, String dateStr) {
         TimeComparison t = getTimeComparison(filter, dateStr);
 
-        List<Order> deliveredOrders = orderRepository.findAll().stream()
-                .filter(o -> o.getOrderStatus() == OrderStatus.DELIVERED)
+        // CẬP NHẬT: Lấy top sản phẩm từ các đơn đã PAID hoặc DELIVERED
+        List<Order> validOrders = orderRepository.findAll().stream()
+                .filter(o -> o.getPaymentStatus() == PaymentStatus.PAID || o.getOrderStatus() == OrderStatus.DELIVERED)
                 .filter(o -> !o.getCreatedAt().isBefore(t.currentStart) && !o.getCreatedAt().isAfter(t.currentEnd))
                 .collect(Collectors.toList());
 
         Map<Integer, TopProductResponse> productMap = new HashMap<>();
 
-        for (Order order : deliveredOrders) {
+        for (Order order : validOrders) {
             for (OrderItem item : order.getItems()) {
                 TopProductResponse stat = productMap.getOrDefault(item.getProductId(),
                         TopProductResponse.builder()
@@ -652,4 +658,26 @@ public class OrderService {
                 .limit(5)
                 .collect(Collectors.toList());
     }
+
+    // BỔ SUNG HÀM XÓA ĐƠN HÀNG VÀ HOÀN KHO
+    @Transactional
+    public void deleteOrderByCode(String orderCode) {
+        Order order = orderRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng để xóa: " + orderCode));
+
+        // CỰC KỲ QUAN TRỌNG: Hoàn lại số lượng tồn kho vì lúc createOrder đã bị trừ
+        List<StockUpdateRequest> stockRequests = order.getItems().stream()
+                .map(item -> new StockUpdateRequest(item.getProductId(), item.getQuantity()))
+                .collect(Collectors.toList());
+
+        try {
+            productServiceClient.increaseStock(stockRequests);
+        } catch (Exception e) {
+            System.err.println("Lỗi hoàn kho khi xóa đơn: " + e.getMessage());
+        }
+
+        // Xóa đơn hàng khỏi Database
+        orderRepository.delete(order);
+    }
+
 }
