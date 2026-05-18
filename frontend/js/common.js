@@ -1,7 +1,7 @@
 const AppConfig = {
   BASE_URL: "http://localhost:8080/api",
   PRODUCT_API_URL: "http://localhost:8080/api",
-  CART_API_URL: "http://localhost:8080/api/",
+  CART_API_URL: "http://localhost:8080/api/cart",
   ORDER_API_URL: "http://localhost:8080/api",
   KEYS: {
     TOKEN: "accessToken",

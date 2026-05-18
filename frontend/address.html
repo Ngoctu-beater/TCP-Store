@@ -142,19 +142,25 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <input id="provinceCity" required type="text" placeholder="Tỉnh/Thành phố" class="w-full bg-gray-50 dark:bg-[#1a1d21] border border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 text-sm focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 dark:text-white outline-none">
+                                <select id="provinceCity" required class="w-full bg-gray-50 dark:bg-[#1a1d21] border border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 text-sm focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 dark:text-white outline-none appearance-none">
+                                    <option value="" selected disabled>Chọn Tỉnh/Thành phố</option>
+                                </select>
                                 <span id="error-provinceCity" class="text-red-500 text-[10px] hidden"></span>
                             </div>
 
                             <div>
-                                <input id="district" required type="text" placeholder="Quận/Huyện" class="w-full bg-gray-50 dark:bg-[#1a1d21] border border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 text-sm focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 dark:text-white outline-none">
+                                <select id="district" required disabled class="w-full bg-gray-50 dark:bg-[#1a1d21] border border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 text-sm focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 dark:text-white outline-none appearance-none disabled:opacity-50">
+                                    <option value="" selected disabled>Chọn Quận/Huyện</option>
+                                </select>
                                 <span id="error-district" class="text-red-500 text-[10px] hidden"></span>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <input id="ward" required type="text" placeholder="Phường/Xã" class="w-full bg-gray-50 dark:bg-[#1a1d21] border border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 text-sm focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 dark:text-white outline-none">
+                                <select id="ward" required disabled class="w-full bg-gray-50 dark:bg-[#1a1d21] border border-gray-200 dark:border-gray-700 rounded-xl py-3 px-4 text-sm focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 dark:text-white outline-none appearance-none disabled:opacity-50">
+                                    <option value="" selected disabled>Chọn Phường/Xã</option>
+                                </select>
                                 <span id="error-ward" class="text-red-500 text-[10px] hidden"></span>
                             </div>
                             <div>

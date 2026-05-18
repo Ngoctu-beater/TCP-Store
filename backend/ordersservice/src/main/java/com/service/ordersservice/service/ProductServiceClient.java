@@ -5,6 +5,7 @@ import com.service.ordersservice.dto.ProductResponse;
 import com.service.ordersservice.dto.ProductStockResponse;
 import com.service.ordersservice.dto.StockUpdateRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -21,7 +22,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ProductServiceClient {
-    private final RestTemplate restTemplate;
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Value("${product.service.url:http://localhost:8082/api/products}")
     private String productServiceUrl;

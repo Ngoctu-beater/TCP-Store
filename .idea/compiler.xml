@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="apigateway" />
         <module name="accountservice" />
+        <module name="ordersservice" />
       </profile>
       <profile name="Annotation profile for shoppingcartservice" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -20,7 +21,6 @@
         </processorPath>
         <module name="shoppingcartservice" />
         <module name="productservice" />
-        <module name="ordersservice" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

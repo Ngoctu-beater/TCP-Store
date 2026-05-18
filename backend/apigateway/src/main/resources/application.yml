@@ -6,7 +6,6 @@ spring:
     name: api-gateway
   cloud:
     gateway:
-      # C?u h�nh CORS ?? Front-end kh�ng b? ch?n
       globalcors:
         corsConfigurations:
           '[/**]':
@@ -14,23 +13,20 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
       routes:
-        # Chuy?n h??ng ??n Account Service
         - id: accountservice
-          uri: http://localhost:8081 # Thay b?ng http://localhost:8081 n?u b?n ch?y th? tr�n m�y c� nh�n kh�ng d�ng Docker
+          uri: http://localhost:8081
           predicates:
-            - Path=/api/auth/**, /api/users/**, /api/addresses/**
+            - Path=/api/auth/**,/api/users/**,/api/addresses/**
           filters:
             - AuthenticationFilter
 
-        # Chuy?n h??ng ??n Product Service
         - id: productservice
           uri: http://localhost:8082
           predicates:
-            - Path=/api/products/**, /api/categories/**, /api/chat/**
+            - Path=/api/products/**,/api/categories/**,/api/chat/**
           filters:
             - AuthenticationFilter
 
-        # Chuy?n h??ng ??n Shopping Cart Service
         - id: shoppingcartservice
           uri: http://localhost:8083
           predicates:
@@ -38,10 +34,14 @@ spring:
           filters:
             - AuthenticationFilter
 
-        # Chuy?n h??ng ??n Order Service
+        # ROUTE ĐÃ SỬA: Gộp chung và xóa dấu cách trong Path
         - id: ordersservice
           uri: http://localhost:8084
           predicates:
-            - Path=/api/orders/**, /api/vouchers/**
+            - Path=/api/orders/**,/api/vouchers/**
           filters:
             - AuthenticationFilter
+        - id: payos-callback
+          uri: http://localhost:8084
+          predicates:
+            - Path=/api/payment/payos/** # Dấu ** này bao gồm cả /return và /cancel

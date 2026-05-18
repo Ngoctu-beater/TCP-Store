@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class CartController {
     private final CartService cartService;
     private final JwtUtil jwtUtil;
@@ -36,22 +35,22 @@ public class CartController {
         return ResponseEntity.ok(cartService.addToCart(getUserId(token), request));
     }
 
-    // 3. Cập nhật (Tăng giảm số lượng / Chọn mua)
+    // Cập nhật (Tăng giảm số lượng / Chọn mua)
     @PutMapping("/item/{itemId}")
     public ResponseEntity<CartResponse> updateItem(
             @RequestHeader("Authorization") String token,
-            @PathVariable("itemId") Integer itemId, // <--- THÊM ("itemId") VÀO ĐÂY
-            @RequestParam(value = "quantity", required = false) Integer quantity, // <--- THÊM value = "quantity"
-            @RequestParam(value = "isSelected", required = false) Boolean isSelected // <--- THÊM value = "isSelected"
+            @PathVariable("itemId") Integer itemId,
+            @RequestParam(value = "quantity", required = false) Integer quantity,
+            @RequestParam(value = "isSelected", required = false) Boolean isSelected
     ) {
         return ResponseEntity.ok(cartService.updateItem(getUserId(token), itemId, quantity, isSelected));
     }
 
-    // 4. Xóa khỏi giỏ
+    // Xóa khỏi giỏ
     @DeleteMapping("/item/{itemId}")
     public ResponseEntity<CartResponse> removeItem(
             @RequestHeader("Authorization") String token,
-            @PathVariable("itemId") Integer itemId // <--- THÊM ("itemId") VÀO ĐÂY
+            @PathVariable("itemId") Integer itemId
     ) {
         return ResponseEntity.ok(cartService.removeItem(getUserId(token), itemId));
     }
